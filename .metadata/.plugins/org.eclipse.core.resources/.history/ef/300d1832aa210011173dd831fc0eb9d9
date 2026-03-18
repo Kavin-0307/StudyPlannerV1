@@ -1,0 +1,13 @@
+package com.Ajwain.SOS.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class LectureRequestDTO {
+	@NotBlank
+	private String filePath;
+	@NotBlank
+	private  String lectureText;
+	
+	private boolean processed;
+	
+}

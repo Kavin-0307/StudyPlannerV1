@@ -1,0 +1,5 @@
+package com.Ajwain.SOS.dto;
+
+public record DeadlineResponseDTO() {
+
+}

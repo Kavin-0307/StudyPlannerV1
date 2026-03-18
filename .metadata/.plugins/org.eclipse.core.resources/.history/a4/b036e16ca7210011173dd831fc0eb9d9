@@ -1,0 +1,15 @@
+package com.Ajwain.SOS.dto;
+
+import jakarta.validation.constraints.*;
+
+public class SubjectRequestDTO {
+	@NotBlank
+	private String subjectName;
+	@Positive
+	private int subjectPriority;
+	@NotNull
+	private SubjectTag subjectTag;
+	@NotNull
+	private LocalDateTime createdAt;
+	
+}

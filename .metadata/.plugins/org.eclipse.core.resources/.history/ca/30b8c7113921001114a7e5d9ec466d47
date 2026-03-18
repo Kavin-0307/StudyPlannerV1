@@ -1,0 +1,7 @@
+package com.Ajwain.SOS.entities;
+
+public enum SubjectTag {
+	EXAM,
+	PRACTICE,
+	REVISION
+}

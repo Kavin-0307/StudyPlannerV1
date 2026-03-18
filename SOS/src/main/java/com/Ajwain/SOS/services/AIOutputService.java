@@ -1,0 +1,7 @@
+package com.Ajwain.SOS.services;
+
+
+
+public class AIOutputService {
+
+}

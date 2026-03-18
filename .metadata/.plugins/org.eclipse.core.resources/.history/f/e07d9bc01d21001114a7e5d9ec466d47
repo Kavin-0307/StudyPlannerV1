@@ -1,0 +1,25 @@
+package com.Ajwain.SOS.entities;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
+
+public class Deadline {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
+	
+	@ManyToOne(fetch=FetchType.LAZY,optional=false)
+	@JoinColumn(name="subject_name",nullable=false)
+	private Subject subject;
+	
+	@Column(name="title",nullable=false)
+	private String title;
+	
+	@Future
+	@Column(name="deadline_date")
+	private LocalDateTime deadlineDate;
+	
+	
+}

@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.repositories;
+
+@Repository
+public interface SubjectRepository extends<Subject,Long>{
+
+}

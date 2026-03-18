@@ -1,0 +1,48 @@
+package com.Ajwain.SOS.dto;
+
+import java.time.LocalDateTime;
+
+import com.Ajwain.SOS.entities.enums.DeadlineType;
+
+import jakarta.validation.constraints.*;
+
+public class DeadlineRequestDTO {
+	@NotBlank
+	private String deadlineTitle;
+	@NotNull
+	@Future
+	private LocalDateTime deadlineDate;
+	@NotNull
+	private DeadlineType deadlineType;
+	
+	@Min(1)
+	@Max(5)
+	private int deadlinePriority;
+	
+	public void setDeadlineTitle(String deadlineTitle) {
+		this.deadlineTitle=deadlineTitle;
+	}
+	public void setDeadlineDate(LocalDateTime deadlineDate) {
+		this.deadlineDate=deadlineDate;
+	}
+	public void setDeadlineType(DeadlineType deadlineType) {
+		this.deadlineType=deadlineType;
+	}
+	public void setDeadlinePriority(int deadlinePriority) {
+		this.deadlinePriority=deadlinePriority;
+	}
+	
+	public String getDeadlineTitle() {
+		return deadlineTitle;
+	}
+	public LocalDateTime getDeadlineDate() {
+		return deadlineDate;
+	}
+	public DeadlineType getDeadlineType() {
+		return deadlineType;
+	}
+	public int getDeadlinePriority() {
+		return deadlinePriority;
+	}
+	
+}

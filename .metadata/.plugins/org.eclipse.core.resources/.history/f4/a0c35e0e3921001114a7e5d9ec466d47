@@ -1,0 +1,8 @@
+package com.Ajwain.SOS.entities;
+
+public enum Goal {
+	COMPETITIVE_EXAMS,
+	SCHOOL_EXAMS,
+	COLLEGE_EXAMS,
+	SELF_STUDY
+}

@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.entities;
+ 
+@Table(name="user")
+public class User {
+	
+}

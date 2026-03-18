@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.dto;
+
+public class DeadlineRequestDTO {
+	@NotBlank
+	private
+}

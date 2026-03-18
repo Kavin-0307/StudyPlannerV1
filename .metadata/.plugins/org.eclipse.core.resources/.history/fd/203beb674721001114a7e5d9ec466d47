@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.repositories;
+
+@Repository
+public interface AIOutputRepository extends JpaRepository<AIOutput,Ling>{
+
+}

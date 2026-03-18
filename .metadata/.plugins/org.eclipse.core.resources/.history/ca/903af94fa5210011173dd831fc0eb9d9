@@ -1,0 +1,21 @@
+package com.Ajwain.SOS.dto;
+
+import jakarta.validation.constraints.*;
+
+public class UserRequestDTO {
+	@NotBlank
+	@Size(max=100,message="The user name must be within 100 characters")
+	private String userName;
+	@NotBlank	
+	private String userId;
+	
+	private boolean userStatus;
+	
+	private LocalDate dateOfBirth;
+	
+	private Goal goal;
+	private String userEmail;
+	
+	private List<Subject subjects>;
+	
+}

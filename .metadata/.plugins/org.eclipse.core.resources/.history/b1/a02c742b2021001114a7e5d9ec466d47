@@ -1,0 +1,5 @@
+package com.Ajwain.SOS.entities;
+
+public class Lecture {
+
+}

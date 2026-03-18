@@ -1,0 +1,23 @@
+package com.Ajwain.SOS.entities;
+
+import jakarta.persistence.*;
+import java.nio.file.Path;
+@Entity
+@Table(name="lectures")
+public class Lecture {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
+	
+	@ManyToOne(fetch=FetchType.LAZY,optional=false)
+	@JoinColumn(name="subject_id",nullable=false)
+	private Subject subject;
+	
+	@Column(name="file_path",nullable=false)
+	private String filePath;
+	
+	@Column(name="text_content")
+	private String lectureText;
+	
+	
+}

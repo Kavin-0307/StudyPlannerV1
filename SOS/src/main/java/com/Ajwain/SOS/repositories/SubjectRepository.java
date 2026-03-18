@@ -1,0 +1,16 @@
+package com.Ajwain.SOS.repositories;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.entities.User;
+
+@Repository
+public interface SubjectRepository extends JpaRepository<Subject,Long>{
+
+	Optional<Subject> findByUserId(long userId);
+
+}

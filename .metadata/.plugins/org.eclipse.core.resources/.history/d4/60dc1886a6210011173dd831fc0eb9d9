@@ -1,0 +1,65 @@
+package com.Ajwain.SOS.dto;
+
+import java.time.LocalDate;
+
+import com.Ajwain.SOS.entities.enums.Goal;
+
+import jakarta.validation.constraints.*;
+
+public class UserRequestDTO {
+	@NotBlank
+	@Size(max=100,message="The user name must be within 100 characters")
+	private String userName;
+	@NotBlank	
+	private String userId;
+	
+	private boolean userStatus;
+	@NotNull
+	private LocalDate dateOfBirth;
+	@NotNull
+	private Goal goal;
+	@NotBlank
+	private String userEmail;
+	
+	
+	public void setUserName(String userName) {
+		this.userName=userName;
+	}
+	public void setUserId(String userId) {
+		this.userId=userId;
+	}
+	public void setUserStatus(boolean userStatus) {
+		this.userStatus=userStatus;
+		
+	}
+	public void setDateOfBirth(LocalDate dateOfBirth) {
+		this.dateOfBirth=dateOfBirth;
+	}
+	public void setGoal(Goal goal) {
+		this.goal=goal;
+	}
+	public void setUserEmail(String userEmail) {
+		this.userEmail=userEmail;
+	}
+	
+	
+	public String getUserName() {
+		return userName;
+	}
+	public String getUserId() {
+		return userId;
+	}
+	public boolean isUserStatus() {
+		return userStatus;
+	}
+	public LocalDate getDateOfBirth() {
+		return dateOfBirth;
+	}
+	public Goal getGoal() {
+		return goal;
+	}
+	public String getUserEmail() {
+		return userEmail;
+	}
+	
+}

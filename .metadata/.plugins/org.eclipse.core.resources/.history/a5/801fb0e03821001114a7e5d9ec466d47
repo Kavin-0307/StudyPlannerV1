@@ -1,0 +1,8 @@
+public enum OutputType {
+
+    SUMMARY,
+    KEYWORDS,
+    REVISION_SHEET,
+    ACTION_ITEMS
+
+}

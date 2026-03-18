@@ -1,0 +1,11 @@
+package com.Ajwain.SOS.entities;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name="study_plan")
+public class StudyPlan {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
+}

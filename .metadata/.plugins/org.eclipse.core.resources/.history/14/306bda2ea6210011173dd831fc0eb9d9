@@ -1,0 +1,18 @@
+package com.Ajwain.SOS.dto;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.entities.enums.Goal;
+
+public record UserResponseDTO(Long id,
+		String userName,
+		String userId,
+		boolean userStatus,
+		LocalDate dateOfBirth,
+		Goal goal,
+		String userEmail,
+		List<SubjectResponseDTO> subjects) {
+
+}
