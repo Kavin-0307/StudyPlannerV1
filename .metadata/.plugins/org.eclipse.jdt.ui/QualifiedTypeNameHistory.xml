@@ -2,5 +2,10 @@
 <qualifiedTypeNameHistroy>
     <fullyQualifiedTypeName name="jakarta.persistence.GenerationType"/>
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Subject"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Deadline"/>
+    <fullyQualifiedTypeName name="java.time.Duration"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.DeadlineType"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.StudyStatus"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Lecture"/>
     <fullyQualifiedTypeName name="org.springframework.http.HttpStatus"/>
 </qualifiedTypeNameHistroy>

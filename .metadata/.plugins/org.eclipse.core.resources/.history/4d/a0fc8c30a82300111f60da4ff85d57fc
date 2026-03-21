@@ -1,0 +1,24 @@
+package com.Ajwain.SOS.controllers;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.Ajwain.SOS.dto.StudyPlanRequestDTO;
+import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
+import com.Ajwain.SOS.services.StudyPlanService;
+
+import jakarta.validation.Valid;
+
+public class StudyPlanController {
+	private final StudyPlanService studyPlanService;
+	public StudyPlanController(StudyPlanService studyPlanService) {
+		this.studyPlanService=studyPlanService;
+	}
+	@PostMapping("/api/studyplan/generate/{userId}")
+	public ResponseEntity<List<StudyPlanResponseDTO>> generateStudyPlan(@PathVariable Long userId,@Valid@RequestBody StudyPlanRequestDTO studyPlanRequestDTO){
+		return ResponseEntity.status(HttpStatus.CREATED).body(studyPlanService.generateStudyPlan(userId));
+	}
+}

@@ -1,0 +1,16 @@
+package com.Ajwain.SOS.repositories;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.Subject;
+
+@Repository
+public interface LectureRepository extends JpaRepository<Lecture,Long>{
+
+	Optional<Subject> findBySubjectId(long subjectId);
+
+}

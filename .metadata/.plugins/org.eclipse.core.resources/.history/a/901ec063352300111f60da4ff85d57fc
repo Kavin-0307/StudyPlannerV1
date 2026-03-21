@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.repositories;
+
+@Repository
+public interface StudyPlanRepository extends JpaRepository<StudyPlan,Long>{
+
+}

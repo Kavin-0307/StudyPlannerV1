@@ -1,0 +1,39 @@
+package com.Ajwain.SOS.controllers;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.Ajwain.SOS.dto.StudyPlanRequestDTO;
+import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
+import com.Ajwain.SOS.services.StudyPlanService;
+
+import jakarta.validation.Valid;
+
+public class StudyPlanController {
+	private final StudyPlanService studyPlanService;
+	public StudyPlanController(StudyPlanService studyPlanService) {
+		this.studyPlanService=studyPlanService;
+	}
+	@PostMapping("/api/studyplan/generate/{userId}")
+	public ResponseEntity<List<StudyPlanResponseDTO>> generateStudyPlan(@PathVariable Long userId,@Valid@RequestBody StudyPlanRequestDTO studyPlanRequestDTO){
+		return ResponseEntity.status(HttpStatus.CREATED).body(studyPlanService.generateStudyPlan(userId));
+	}
+	@GetMapping("/api/studyplan/today/{userId}")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getTodayPlan(@PathVariable Long userId){
+		return ResponseEntity.ok(studyPlanService.getTodayPlan(userId));
+	}
+	@GetMapping("/api/studyplan/{userId}")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getFullPlan(@PathVariable long userId){
+		return ResponseEntity.ok(studyPlanService.getStudyPlanByUser(userId));
+	}
+	@GetMapping("/api/studyplan/{userId}/range?start=YYYY-MM-DD&end=YYYY-MM-DD")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getPlanByDateAndRange(@PathVariable long userId,@PathVariable LocalDate start,LocalDate end){
+		return ResponseEntity.ok(studyPlanService.getPlanByDateRange(userId, start, end));
+	}
+}

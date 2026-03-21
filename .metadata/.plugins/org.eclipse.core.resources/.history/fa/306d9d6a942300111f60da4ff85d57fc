@@ -1,0 +1,10 @@
+package com.Ajwain.SOS.controllers;
+
+import org.springframework.stereotype.Controller;
+
+@RestController
+public class UserController {
+	
+	@PostMapping("/api/studyplan/generate/{userId}")
+	public
+}

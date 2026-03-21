@@ -11,6 +11,5 @@ public record StudyPlanResponseDTO(
         Long subjectId,
         LocalDate studyDate,
         int durationMinutes,
-        StudyStatus status,
-        LocalDateTime createdAt
+        StudyStatus status
 ) {}

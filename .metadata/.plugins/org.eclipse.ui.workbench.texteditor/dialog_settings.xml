@@ -4,6 +4,9 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="false"/>
 		<list key="findhistory">
+			<item value="findByUserId"/>
+			<item value="findByUser"/>
+			<item value="delete"/>
 			<item value="Subject"/>
 		</list>
 	</section>

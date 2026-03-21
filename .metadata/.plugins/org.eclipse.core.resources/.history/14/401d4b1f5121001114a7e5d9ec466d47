@@ -1,6 +1,0 @@
-package com.Ajwain.SOS.services;
-
-@Service
-public class StudyPlanService {
-
-}

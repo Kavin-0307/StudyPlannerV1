@@ -1,0 +1,10 @@
+package com.Ajwain.SOS.controllers;
+
+@RestController
+@RequestMapping("/api")
+public class DeadlineController {
+	private final DeadlineService deadlineService;
+	public DeadlineController(DeadlineService deadlineService) {
+		this.deadlineService=deadlineService;
+	}
+}

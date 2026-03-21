@@ -1,0 +1,40 @@
+package com.Ajwain.SOS.controllers;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.Ajwain.SOS.dto.LectureRequestDTO;
+import com.Ajwain.SOS.dto.LectureResponseDTO;
+import com.Ajwain.SOS.services.LectureService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/lectures")
+public class LectureController {
+	private final LectureService lectureService;
+	public LectureController(LectureService lectureService) {
+		this.lectureService=lectureService;
+	}
+	@PostMapping("/{subjectId}")
+	public ResponseEntity<LectureResponseDTO> createLecture(@RequestBody@Valid LectureRequestDTO dto){
+		return	ResponseEntity.ok(lectureService.createLecture(dto));
+	}
+	@PostMapping("/{lectureId}")
+	public ResponseEntity<LectureResponseDTO> markedProcessed(@PathVariable Long lectureId,@RequestBody String extractedText){
+		return ResponseEntity.ok(lectureService.markProcessed(lectureId, extractedText));
+	}
+	
+}

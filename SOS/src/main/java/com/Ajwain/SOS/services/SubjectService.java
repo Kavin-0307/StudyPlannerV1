@@ -8,7 +8,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.Ajwain.SOS.dto.SubjectRequestDTO;
 import com.Ajwain.SOS.dto.SubjectResponseDTO;
-import com.Ajwain.SOS.dto.UserResponseDTO;
 import com.Ajwain.SOS.entities.Subject;
 import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.repositories.SubjectRepository;
@@ -21,9 +20,12 @@ public class SubjectService {
 		this.userRepository=userRepository;
 		this.subjectRepository=subjectRepository;
 	}
-	public SubjectResponseDTO createSubject(long id,SubjectRequestDTO dto) {
+	public SubjectResponseDTO createSubject(long userId,SubjectRequestDTO dto) {
 		Subject subject=new Subject();
-		User user=userRepository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+		User user=userRepository.findById(userId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+		 if (subjectRepository.existsByUserIdAndSubjectName(userId, dto.getSubjectName())) {
+		        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Subject already exists");
+		    }
 		subject.setSubjectName(dto.getSubjectName());
 		subject.setSubjectPriority(dto.getSubjectPriority());
 		subject.setSubjectTag(dto.getSubjectTag());
@@ -33,7 +35,6 @@ public class SubjectService {
 		
 	}
 	public List<SubjectResponseDTO> getSubjectsByUser(long userId){
-		User user=userRepository.findById(userId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
 		return subjectRepository.findByUserId(userId).stream().map(this::convertToResponseDTO).toList();
 	}
 	public SubjectResponseDTO updateSubject(long subjectId,SubjectRequestDTO dto) {

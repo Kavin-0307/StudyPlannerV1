@@ -1,0 +1,19 @@
+package com.Ajwain.SOS.controllers;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.Ajwain.SOS.services.DeadlineService;
+
+@RestController
+@RequestMapping("/api")
+public class DeadlineController {
+	private final DeadlineService deadlineService;
+	public DeadlineController(DeadlineService deadlineService) {
+		this.deadlineService=deadlineService;
+	}
+	@PostMapping("/deadlines/{subjectId}")
+	public ResponseEntity<DeadlineResponseDTO> createDeadline(@PathVariable Long subjectId,@RequestBody DeadlineRequestDTO dto){
+		
+	}
+}
