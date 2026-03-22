@@ -1,47 +1,70 @@
 package com.Ajwain.SOS.services;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.LectureRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
+import com.Ajwain.SOS.storage.FileStorageService;
 
 @Service
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final SubjectRepository subjectRepository;
-	public LectureService(LectureRepository lectureRepository,SubjectRepository subjectRepository)
+	private final FileStorageService fileStorageService;
+	private final Logger logger=LoggerFactory.getLogger(LectureService.class);
+	
+	public LectureService(LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService)
 	{
+		this.fileStorageService=fileStorageService;
 		this.lectureRepository=lectureRepository;
 		this.subjectRepository=subjectRepository;
 	}	
-	public LectureResponseDTO createLecture(Long subjectId,LectureRequestDTO dto) {
-		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Subject not found"));
+	public LectureResponseDTO createLecture(MultipartFile file,Long subjectId,LectureRequestDTO dto) {
+		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
 		Lecture lecture=new Lecture();
 		lecture.setSubject(subject);
-		lecture.setFilePath(dto.getFilePath());
+		Path path;
+		try {
+		path=fileStorageService.saveUploadedFile(file, subjectId) ;
+		}
+		catch(IOException e) {
+			throw new RuntimeException("File not saved");
+		}
 		lecture.setProcessed(false);
+		lecture.setFilePath(path.toString());
 		lecture.setUploadDate(LocalDateTime.now());
 		Lecture savedLecture=lectureRepository.save(lecture);
+		logger.info("Lecture uploaded for subject {}", subjectId);
+
 		return convertToResponseDTO(savedLecture);
 	}
-	public LectureResponseDTO markProcessed(Long lectureId, String extractedText) {
+	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
 
 	    Lecture lecture = lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResponseStatusException(
-	            HttpStatus.NOT_FOUND, "Lecture not found"
+	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
 	        ));
-
+	    try {
+	    lecture.setFilePath(fileStorageService.moveToProcessed(Paths.get(lecture.getFilePath())).toString());
+	    }catch(IOException e) {
+			throw new RuntimeException("File not saved");
+		}
 	    lecture.setLectureText(extractedText);
 	    lecture.setProcessed(true);
+	    logger.info("Lecture processed {}", lectureId);
 
 	    return convertToResponseDTO(lectureRepository.save(lecture));
 	}
@@ -56,8 +79,7 @@ public class LectureService {
 	}
 	public LectureResponseDTO getLectureById(Long lectureId) {
 	    Lecture lecture = lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResponseStatusException(
-	            HttpStatus.NOT_FOUND, "Lecture not found"
+	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
 	        ));
 
 	    return convertToResponseDTO(lecture);
@@ -65,10 +87,26 @@ public class LectureService {
 	public void deleteLecture(long lectureId) {
 		
 	    Lecture lecture= lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecture not found"));
+	        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+	    fileStorageService.deleteFile(lecture.getFilePath());
+		   
 	    lectureRepository.delete(lecture);
+	    logger.info("Lecture uploaded for subject {}", lectureId);
+
 	
 }
+	public LectureResponseDTO processLecture(long lectureId) {
+		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
+		String filePath=lecture.getFilePath();
+		String extractedText="";
+		try {
+			extractedText = PdfExtractionService.extractText(filePath);
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+		}
+		return markProcessed(lectureId,extractedText);
+	}
 	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
 		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText());
 	}

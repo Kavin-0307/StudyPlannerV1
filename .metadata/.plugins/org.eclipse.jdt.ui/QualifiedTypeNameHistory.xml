@@ -8,4 +8,11 @@
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.StudyStatus"/>
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Lecture"/>
     <fullyQualifiedTypeName name="org.springframework.http.HttpStatus"/>
+    <fullyQualifiedTypeName name="java.util.Map"/>
+    <fullyQualifiedTypeName name="java.lang.System"/>
+    <fullyQualifiedTypeName name="java.time.LocalDateTime"/>
+    <fullyQualifiedTypeName name="java.nio.file.StandardCopyOption"/>
+    <fullyQualifiedTypeName name="java.nio.file.Files"/>
+    <fullyQualifiedTypeName name="java.util.UUID"/>
+    <fullyQualifiedTypeName name="java.nio.file.Paths"/>
 </qualifiedTypeNameHistroy>

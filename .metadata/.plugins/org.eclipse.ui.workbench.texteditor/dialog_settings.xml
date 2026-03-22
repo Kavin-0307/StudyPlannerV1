@@ -2,12 +2,22 @@
 <section name="Workbench">
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<section name="java.lang.Class">
-		<item key="replaceBarOpen" value="false"/>
+		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="sube"/>
+			<item value="/D"/>
+			<item value="ResponseStatusException"/>
+			<item value="ResponseSta"/>
+			<item value="throw"/>
 			<item value="findByUserId"/>
 			<item value="findByUser"/>
 			<item value="delete"/>
 			<item value="Subject"/>
+		</list>
+		<list key="replacehistory">
+			<item value="D"/>
+			<item value="ResourceNotFoundException"/>
+			<item value="BadRequestException"/>
 		</list>
 	</section>
 </section>

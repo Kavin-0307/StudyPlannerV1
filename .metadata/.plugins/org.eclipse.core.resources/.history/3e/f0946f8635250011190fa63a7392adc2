@@ -1,0 +1,75 @@
+package com.Ajwain.SOS.services;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.Ajwain.SOS.dto.LectureRequestDTO;
+import com.Ajwain.SOS.dto.LectureResponseDTO;
+import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.repositories.LectureRepository;
+import com.Ajwain.SOS.repositories.SubjectRepository;
+
+@Service
+public class LectureService {
+	private final LectureRepository lectureRepository;
+	private final SubjectRepository subjectRepository;
+	public LectureService(LectureRepository lectureRepository,SubjectRepository subjectRepository)
+	{
+		this.lectureRepository=lectureRepository;
+		this.subjectRepository=subjectRepository;
+	}	
+	public LectureResponseDTO createLecture(Long subjectId,LectureRequestDTO dto) {
+		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Subject not found"));
+		Lecture lecture=new Lecture();
+		lecture.setSubject(subject);
+		lecture.setFilePath(dto.getFilePath());
+		lecture.setProcessed(false);
+		lecture.setUploadDate(LocalDateTime.now());
+		Lecture savedLecture=lectureRepository.save(lecture);
+		return convertToResponseDTO(savedLecture);
+	}
+	public LectureResponseDTO markProcessed(Long lectureId, String extractedText) {
+
+	    Lecture lecture = lectureRepository.findById(lectureId)
+	        .orElseThrow(() -> new ResponseStatusException(
+	            HttpStatus.NOT_FOUND, "Lecture not found"
+	        ));
+
+	    lecture.setLectureText(extractedText);
+	    lecture.setProcessed(true);
+
+	    return convertToResponseDTO(lectureRepository.save(lecture));
+	}
+	public List<LectureResponseDTO> getLecturesBySubject(long subjectId){
+		return lectureRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
+	}
+	public List<LectureResponseDTO> getProcessedLectures(Long subjectId) {
+
+	    return lectureRepository.findBySubjectIdAndProcessedTrue(subjectId).stream()
+	        .map(this::convertToResponseDTO)
+	        .toList();
+	}
+	public LectureResponseDTO getLectureById(Long lectureId) {
+	    Lecture lecture = lectureRepository.findById(lectureId)
+	        .orElseThrow(() -> new ResponseStatusException(
+	            HttpStatus.NOT_FOUND, "Lecture not found"
+	        ));
+
+	    return convertToResponseDTO(lecture);
+	}
+	public void deleteLecture(long lectureId) {
+		
+	    Lecture lecture= lectureRepository.findById(lectureId)
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecture not found"));
+	    lectureRepository.delete(lecture);
+	
+}
+	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
+		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText());
+	}
+}

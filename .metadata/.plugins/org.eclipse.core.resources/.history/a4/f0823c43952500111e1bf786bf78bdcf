@@ -1,0 +1,33 @@
+package com.Ajwain.SOS.services;
+import java.nio.file.Path;
+
+import java.nio.file.Paths;
+import java.io.FileInputStream;
+import java.io.IOException;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.parser.PdfTextExtractor;
+
+import org.springframework.stereotype.Service;
+@Service
+public class PdfExtractionService {
+	public String extractText(String filePath) {
+        StringBuilder text = new StringBuilder();
+
+        try {
+            PdfReader reader = new PdfReader(new FileInputStream(filePath));
+            int numberOfPages = reader.getNumberOfPages();
+
+            for (int i = 1; i <= numberOfPages; i++) {
+                text.append(PdfTextExtractor.getTextFromPage(reader, i));
+                text.append("\n");
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract PDF text");
+        }
+
+        return text.toString();
+    }
+
+}

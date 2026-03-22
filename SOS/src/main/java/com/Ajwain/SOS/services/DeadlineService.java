@@ -2,15 +2,17 @@ package com.Ajwain.SOS.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.Ajwain.SOS.dto.DeadlineRequestDTO;
 import com.Ajwain.SOS.dto.DeadlineResponseDTO;
 import com.Ajwain.SOS.entities.Deadline;
 import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.exception.BadRequestException;
+import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.DeadlineRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
 
@@ -20,6 +22,8 @@ import jakarta.transaction.Transactional;
 public class DeadlineService {
 	private final SubjectRepository subjectRepository;
 	private final DeadlineRepository deadlineRepository;
+	private final Logger logger=LoggerFactory.getLogger(StudyPlanService.class);
+	
 	private final StudyPlanService studyPlanService;
 	public DeadlineService(SubjectRepository subjectRepository,DeadlineRepository deadlineRepository,StudyPlanService studyPlanService) {
 		this.subjectRepository=subjectRepository;
@@ -28,9 +32,9 @@ public class DeadlineService {
 	}
 	public DeadlineResponseDTO createDeadline(long subjectId,DeadlineRequestDTO dto) {
 		Deadline deadline =new Deadline();
-		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Subject not found"));
+		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
 		if(dto.getDeadlineDate().isBefore(LocalDateTime.now())) {
-		    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deadline cannot be in the past");
+		    throw new BadRequestException("Deadline cannot be in the past");
 		}
 		deadline.setDeadlineDate(dto.getDeadlineDate());
 		deadline.setDeadlinePriority(dto.getDeadlinePriority());
@@ -39,6 +43,8 @@ public class DeadlineService {
 		deadline.setSubject(subject);
 		Deadline savedDeadline=deadlineRepository.save(deadline);
 		studyPlanService.regenerateStudyPlan(deadline.getSubject().getUser().getId());
+
+		logger.info("Creating deadline for subject {}", subjectId);
 		return convertToResponseDTO(savedDeadline);
 	}
 	public List<DeadlineResponseDTO> getDeadlinesByUser(long userId){
@@ -47,13 +53,13 @@ public class DeadlineService {
 	}
 	public List<DeadlineResponseDTO> getDeadlinesBySubject(long subjectId){
 		subjectRepository.findById(subjectId)
-	    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subject not found"));
+	    .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
 		return deadlineRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
 	}
 	public DeadlineResponseDTO updateDeadline(long deadlineID,DeadlineRequestDTO dto) {
-		Deadline deadline=deadlineRepository.findById(deadlineID).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Deadline not found"));
+		Deadline deadline=deadlineRepository.findById(deadlineID).orElseThrow(()->new ResourceNotFoundException("Deadline not found"));
 		if(dto.getDeadlineDate().isBefore(LocalDateTime.now())) {
-		    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deadline cannot be in the past");
+		    throw new BadRequestException( "Deadline cannot be in the past");
 		}
 		deadline.setDeadlineDate(dto.getDeadlineDate());
 		deadline.setDeadlinePriority(dto.getDeadlinePriority());
@@ -62,16 +68,18 @@ public class DeadlineService {
 		
 		Deadline savedDeadline=deadlineRepository.save(deadline);
 		studyPlanService.regenerateStudyPlan(deadline.getSubject().getUser().getId());
-
+		logger.info("Updating deadline {}", deadlineID);
 		return convertToResponseDTO(savedDeadline);
 	}
 	@Transactional
 	public void deleteDeadline(long deadlineId) {
 	    Deadline deadline = deadlineRepository.findById(deadlineId)
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Deadline not found"));
+	        .orElseThrow(() -> new ResourceNotFoundException("Deadline not found"));
 
 	    deadlineRepository.delete(deadline);
 	    studyPlanService.regenerateStudyPlan(deadline.getSubject().getUser().getId());
+
+	    logger.info("Deleting deadline {}", deadlineId);
 	}
 	public List<DeadlineResponseDTO> getUpcomingDeadlines(long userId) {
 

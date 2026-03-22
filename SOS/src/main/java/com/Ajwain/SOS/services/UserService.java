@@ -3,6 +3,9 @@ package com.Ajwain.SOS.services;
 import java.util.List;
 import java.util.Optional;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -10,10 +13,12 @@ import org.springframework.web.server.ResponseStatusException;
 import com.Ajwain.SOS.dto.UserRequestDTO;
 import com.Ajwain.SOS.dto.UserResponseDTO;
 import com.Ajwain.SOS.entities.User;
+import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.UserRepository;
 
 @Service
 public class UserService {
+	private static final Logger logger=LoggerFactory.getLogger(UserService.class);
 	private final UserRepository userRepository;
 	public UserService(UserRepository userRepository) {
 		this.userRepository=userRepository;
@@ -27,10 +32,11 @@ public class UserService {
 		user.setUserName(userRequestDTO.getUserName());
 		user.setUserStatus(userRequestDTO.isUserStatus());
 		userRepository.save(user);
+		logger.info("User created{}",userRequestDTO.getUserId());
 		return convertToResponseDTO(user);
 	}
 	public UserResponseDTO updateUser(UserRequestDTO userRequestDTO,long id) {
-		User user=userRepository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+		User user=userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
 		if(!user.isUserStatus()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,"Cannot update inactive patient");
 		}
@@ -41,13 +47,14 @@ public class UserService {
 		user.setUserName(userRequestDTO.getUserName());
 		user.setUserStatus(userRequestDTO.isUserStatus());
 		userRepository.save(user);
+		logger.info("User {} updated",id);
 		return convertToResponseDTO(user);
 	}
 	public List<UserResponseDTO> getAllUsers(){
 		return userRepository.findAll().stream().filter(User::isUserStatus).map(this::convertToResponseDTO).toList();
 	}
 	public void deactivateUser(long id) {
-		User user=userRepository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+		User user=userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
 		user.setUserStatus(false);
 		userRepository.save(user);
 	}
@@ -57,7 +64,7 @@ public class UserService {
 	public UserResponseDTO getUserByEmail(String email) {
 
 	    User user = userRepository.findByUserEmail(email)
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+	        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 	    return convertToResponseDTO(user);
 	}

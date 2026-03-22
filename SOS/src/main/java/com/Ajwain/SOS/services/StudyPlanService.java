@@ -6,11 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import org.springframework.web.server.ResponseStatusException;
 import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
 import com.Ajwain.SOS.entities.Deadline;
 import com.Ajwain.SOS.repositories.DeadlineRepository;
@@ -18,12 +14,17 @@ import com.Ajwain.SOS.repositories.StudyPlanRepository;
 
 import jakarta.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.Ajwain.SOS.entities.StudyPlan;
 import com.Ajwain.SOS.entities.enums.DeadlineType;
 import com.Ajwain.SOS.entities.enums.StudyStatus;
+import com.Ajwain.SOS.exception.ResourceNotFoundException;
 @Service
 public class StudyPlanService {
 	private final StudyPlanRepository studyPlanRepository;
+	private final Logger logger=LoggerFactory.getLogger(StudyPlanService.class);
 	private final DeadlineRepository deadlineRepository;
 	public StudyPlanService(StudyPlanRepository studyPlanRepository,DeadlineRepository deadlineRepository) {
 		this.studyPlanRepository=studyPlanRepository;
@@ -37,7 +38,7 @@ public class StudyPlanService {
 		Map<LocalDate,List<StudyPlan>> schedule=new HashMap<>();
 		int DAILY_LIMIT=180;
 		LocalDate today=LocalDate.now();
-		
+		logger.info("Generating study plan for user {}", userId);
 		for(Deadline d:deadlines) {
 			long workload=0;
 			if(d.getDeadlineType()==DeadlineType.EXAM)
@@ -128,8 +129,7 @@ public class StudyPlanService {
 	public StudyPlanResponseDTO updateStudyStatus(Long planId, StudyStatus status) {
 
 	    StudyPlan plan = studyPlanRepository.findById(planId)
-	        .orElseThrow(() -> new ResponseStatusException(
-	            HttpStatus.NOT_FOUND, "Study plan not found"
+	        .orElseThrow(() -> new ResourceNotFoundException("Study plan not found"
 	        ));
 	    if(status == StudyStatus.MISSED) {
 	        regenerateStudyPlan(plan.getUser().getId());
@@ -147,7 +147,7 @@ public class StudyPlanService {
 	}
 	public List<StudyPlanResponseDTO> getStudyPlanByUser(long userId) {
 		if(studyPlanRepository.findByUserId(userId).isEmpty())
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"The study plan was not found");
+			throw new ResourceNotFoundException("The study plan was not found");
 		return studyPlanRepository.findFullPlanWithRelations(userId).stream().map(this::convertToResponseDTO).toList();
 		
 		
