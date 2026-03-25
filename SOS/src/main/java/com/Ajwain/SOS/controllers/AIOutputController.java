@@ -1,0 +1,44 @@
+package com.Ajwain.SOS.controllers;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.Ajwain.SOS.entities.AI_Output;
+import com.Ajwain.SOS.entities.enums.OutputType;
+import com.Ajwain.SOS.services.AIOutputService;
+@RestController
+@RequestMapping("/api/ai-output")
+public class AIOutputController {
+
+    private final AIOutputService aiOutputService;
+
+    public AIOutputController(AIOutputService aiOutputService) {
+        this.aiOutputService = aiOutputService;
+    }
+
+    @GetMapping("/lecture/{lectureId}")
+    public ResponseEntity<List<AI_Output>> getAllOutputs(@PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
+    }
+
+    @GetMapping("/lecture/{lectureId}/summary")
+    public ResponseEntity<AI_Output> getSummary(@PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.SUMMARY));
+    }
+
+    @GetMapping("/lecture/{lectureId}/keywords")
+    public ResponseEntity<AI_Output> getKeywords(@PathVariable Long lectureId) {
+        return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.KEYWORDS));
+    }
+
+    @GetMapping("/lecture/{lectureId}/revision-sheet")
+    public ResponseEntity<AI_Output> getRevisionSheet(@PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.REVISION_SHEET));
+    }
+}

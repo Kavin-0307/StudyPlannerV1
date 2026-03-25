@@ -1,4 +1,4 @@
-package com.Ajwain.SOS.services;
+ package com.Ajwain.SOS.services;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -6,11 +6,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import com.Ajwain.SOS.config.PaginationConfig;
+import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
+import com.Ajwain.SOS.dto.StudyPlanSearchCriteria;
 import com.Ajwain.SOS.entities.Deadline;
 import com.Ajwain.SOS.repositories.DeadlineRepository;
 import com.Ajwain.SOS.repositories.StudyPlanRepository;
+import com.Ajwain.SOS.specifications.StudyPlanSpecification;
 
 import jakarta.transaction.Transactional;
 
@@ -181,5 +191,73 @@ public class StudyPlanService {
 				studyPlan.getStudyDate(),
 				studyPlan.getDurationMinutes(),
 				studyPlan.getStudyStatus());
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlansByUser(long userId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserId(userId,pageable);
+		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(studyPlan, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(long userId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserIdAndStudyDate(userId,LocalDate.now(),pageable);
+		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(studyPlan, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getCompletedPlans(long userId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserIdAndStudyStatus(userId,StudyStatus.COMPLETED,pageable);
+		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(studyPlan, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getPendingPlans(
+	        long userId, Pageable pageable) {
+	    pageable = validatePageable(pageable);
+	    Page<StudyPlan> studyPlanPage =studyPlanRepository.findByUserIdAndStudyStatus(userId, StudyStatus.PLANNED, pageable);
+	    List<StudyPlanResponseDTO> dtos = studyPlanPage.getContent().stream().map(this::convertToResponseDTO).toList();
+	    return PaginationResponseDTO.fromPage(studyPlanPage, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getPlanByDateRange(
+	        long userId, LocalDate start, LocalDate end, Pageable pageable) {
+
+	    pageable = validatePageable(pageable);
+
+	    Page<StudyPlan> studyPlanPage =
+	            studyPlanRepository.findByUserIdAndStudyDateBetween(
+	                    userId, start, end, pageable);
+
+	    List<StudyPlanResponseDTO> dtos = studyPlanPage.getContent()
+	            .stream()
+	            .map(this::convertToResponseDTO)
+	            .toList();
+
+	    return PaginationResponseDTO.fromPage(studyPlanPage, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(StudyPlanSearchCriteria criteria,Pageable pageable){
+	    pageable=validatePageable(pageable);
+	    Specification<StudyPlan> spec =buildSpecification(criteria);
+	    Page<StudyPlan> plans=studyPlanRepository.findAll(spec,pageable);
+	    List<StudyPlanResponseDTO> dtos =plans.getContent().stream().map(this::convertToResponseDTO).toList();
+
+	    return PaginationResponseDTO.fromPage(plans, dtos);
+	}
+	Specification<StudyPlan> buildSpecification(StudyPlanSearchCriteria criteria){
+	    return Specification.where(StudyPlanSpecification.hasUser(criteria.getUserId()))
+	            .and(StudyPlanSpecification.hasSubject(criteria.getSubjectId()))
+	            .and(StudyPlanSpecification.hasStatus(criteria.getStatus()))
+	            .and(StudyPlanSpecification.studyDateAfter(criteria.getFromDate()))
+	            .and(StudyPlanSpecification.studyDateBefore(criteria.getToDate()))
+	            .and(StudyPlanSpecification.durationGreaterThan(criteria.getMinDuration()))
+	            .and(StudyPlanSpecification.durationLessThan(criteria.getMaxDuration()));
+	}
+	private Pageable validatePageable(Pageable pageable) {
+	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
+	        return PageRequest.of(
+	            pageable.getPageNumber(),
+	            PaginationConfig.getMaxSize(),
+	            pageable.getSort()
+	        );
+	    }
+	    return pageable;
 	}
 }

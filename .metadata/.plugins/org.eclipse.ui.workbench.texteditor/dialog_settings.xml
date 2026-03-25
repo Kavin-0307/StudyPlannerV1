@@ -4,6 +4,11 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="if(pageable.getPageSize()&gt;PaginationConfig.getMaxSize()) {"/>
+			<item value="if("/>
+			<item value="getPen"/>
+			<item value="process"/>
+			<item value="webflux"/>
 			<item value="sube"/>
 			<item value="/D"/>
 			<item value="ResponseStatusException"/>
@@ -15,6 +20,7 @@
 			<item value="Subject"/>
 		</list>
 		<list key="replacehistory">
+			<item value="pageable=validatePageable(pageable);"/>
 			<item value="D"/>
 			<item value="ResourceNotFoundException"/>
 			<item value="BadRequestException"/>

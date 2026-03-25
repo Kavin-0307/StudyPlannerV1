@@ -1,0 +1,8 @@
+package com.Ajwain.SOS.dto;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PaginationResponseDTO {
+	List<T> data=new ArrayList<>();
+}

@@ -5,14 +5,21 @@
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Deadline"/>
     <fullyQualifiedTypeName name="java.time.Duration"/>
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.DeadlineType"/>
-    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.StudyStatus"/>
     <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.Lecture"/>
     <fullyQualifiedTypeName name="org.springframework.http.HttpStatus"/>
     <fullyQualifiedTypeName name="java.util.Map"/>
     <fullyQualifiedTypeName name="java.lang.System"/>
     <fullyQualifiedTypeName name="java.time.LocalDateTime"/>
     <fullyQualifiedTypeName name="java.nio.file.StandardCopyOption"/>
-    <fullyQualifiedTypeName name="java.nio.file.Files"/>
     <fullyQualifiedTypeName name="java.util.UUID"/>
     <fullyQualifiedTypeName name="java.nio.file.Paths"/>
+    <fullyQualifiedTypeName name="java.nio.file.Files"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.dto.AIRequestDTO"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.OutputType"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.StudyStatus"/>
+    <fullyQualifiedTypeName name="jakarta.persistence.FetchType"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.entities.enums.RevisionStatus"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.config.PaginationConfig"/>
+    <fullyQualifiedTypeName name="org.springframework.data.domain.PageRequest"/>
+    <fullyQualifiedTypeName name="com.Ajwain.SOS.specifications.LectureSpecification"/>
 </qualifiedTypeNameHistroy>

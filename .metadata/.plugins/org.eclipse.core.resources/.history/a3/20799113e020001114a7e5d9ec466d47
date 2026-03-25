@@ -1,6 +1,0 @@
-package com.Ajwain.SOS.entities;
- 
-@table(name="user")
-public class User {
-	
-}

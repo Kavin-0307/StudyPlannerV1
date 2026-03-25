@@ -91,6 +91,11 @@
 			    <artifactId>openpdf</artifactId>
 			    <version>3.0.0</version>
 	 	 </dependency>
+<!-- pom.xml snippet -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
 
         <!--JWT-->
         <dependency>

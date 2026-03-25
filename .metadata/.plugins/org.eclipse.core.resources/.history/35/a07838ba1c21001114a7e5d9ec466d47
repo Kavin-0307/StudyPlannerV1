@@ -1,9 +1,0 @@
-package com.Ajwain.SOS.entities;
-
-import jakarta.persistence.*;
-
-public class Deadline {
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private long id;
-}

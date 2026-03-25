@@ -1,0 +1,48 @@
+@RestController
+@RequestMapping("/api/ai-output")
+public class AIOutputController {
+
+    private final AIOutputService aiOutputService;
+
+    public AIOutputController(AIOutputService aiOutputService) {
+        this.aiOutputService = aiOutputService;
+    }
+
+    @GetMapping("/lecture/{lectureId}")
+    public ResponseEntity<List<AI_Output>> getAllOutputs(
+            @PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(
+                aiOutputService.getOutputsForLecture(lectureId));
+    }
+
+    @GetMapping("/lecture/{lectureId}/summary")
+    public ResponseEntity<AI_Output> getSummary(
+            @PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(
+                aiOutputService.getOutputByType(
+                        lectureId,
+                        OutputType.SUMMARY));
+    }
+
+    @GetMapping("/lecture/{lectureId}/keywords")
+    public ResponseEntity<AI_Output> getKeywords(
+            @PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(
+                aiOutputService.getOutputByType(
+                        lectureId,
+                        OutputType.KEYWORDS));
+    }
+
+    @GetMapping("/lecture/{lectureId}/revision-sheet")
+    public ResponseEntity<AI_Output> getRevisionSheet(
+            @PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(
+                aiOutputService.getOutputByType(
+                        lectureId,
+                        OutputType.REVISION_SHEET));
+    }
+}

@@ -2,10 +2,16 @@ package com.Ajwain.SOS.services;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.Ajwain.SOS.config.PaginationConfig;
+import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.SubjectRequestDTO;
 import com.Ajwain.SOS.dto.SubjectResponseDTO;
 import com.Ajwain.SOS.entities.Subject;
@@ -36,10 +42,6 @@ public class SubjectService {
 		Subject savedSubject=subjectRepository.save(subject);
 		logger.info("Subject created for user{}",userId);
 		return convertToResponseDTO(savedSubject);
-		
-	}
-	public List<SubjectResponseDTO> getSubjectsByUser(long userId){
-		return subjectRepository.findByUserId(userId).stream().map(this::convertToResponseDTO).toList();
 	}
 	public SubjectResponseDTO updateSubject(long subjectId,SubjectRequestDTO dto) {
 		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
@@ -52,6 +54,12 @@ public class SubjectService {
 		
 		
 	}
+	public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Long userId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<Subject> subjects=subjectRepository.findByUserId(userId,pageable);
+		List<SubjectResponseDTO> dtos=subjects.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(subjects,dtos);
+	}
 	public void deleteSubject(long subjectId) {
 		
 		    Subject subject = subjectRepository.findById(subjectId)
@@ -60,6 +68,31 @@ public class SubjectService {
 		    logger.info("Subject {} deleted", subjectId);
 		
 	}
+	public PaginationResponseDTO<SubjectResponseDTO> searchSubjects(String keyword, Pageable pageable) {
+		pageable=validatePageable(pageable);
+	    Page<Subject> subjectPage ;
+	    if(keyword==null||keyword.isBlank()) {
+	    	subjectPage=subjectRepository.findAll(pageable);
+	    }
+	    else
+	    subjectPage=subjectRepository.findByNameAndContainingIgnoreCase(keyword, pageable);
+
+	    List<SubjectResponseDTO> dtos = subjectPage.getContent().stream().map(this::convertToResponseDTO).toList();
+
+	    return  PaginationResponseDTO.fromPage(subjectPage,dtos);
+	}
+	
+	private Pageable validatePageable(Pageable pageable) {
+	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
+	        return PageRequest.of(
+	            pageable.getPageNumber(),
+	            PaginationConfig.getMaxSize(),
+	            pageable.getSort()
+	        );
+	    }
+	    return pageable;
+	}
+
 	public SubjectResponseDTO convertToResponseDTO(Subject subject) {
 		 return new SubjectResponseDTO(
 			        subject.getId(),

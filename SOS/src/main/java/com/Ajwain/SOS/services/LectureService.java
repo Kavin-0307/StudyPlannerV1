@@ -3,36 +3,48 @@ package com.Ajwain.SOS.services;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.Ajwain.SOS.config.PaginationConfig;
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
+import com.Ajwain.SOS.dto.LectureSearchCriteria;
+import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Subject;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.LectureRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
+import com.Ajwain.SOS.specifications.LectureSpecification;
 import com.Ajwain.SOS.storage.FileStorageService;
 
 @Service
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final SubjectRepository subjectRepository;
+	private final AIOutputService aiOutputService;
 	private final FileStorageService fileStorageService;
 	private final Logger logger=LoggerFactory.getLogger(LectureService.class);
-	
-	public LectureService(LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService)
+	private final RevisionService revisionService;
+	public LectureService(RevisionService revisionService,AIOutputService aiOutputService,LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService)
 	{
+		this.revisionService=revisionService;
+		this.aiOutputService=aiOutputService;
 		this.fileStorageService=fileStorageService;
 		this.lectureRepository=lectureRepository;
 		this.subjectRepository=subjectRepository;
 	}	
+	// ============== CREATE LECTURE ==============
 	public LectureResponseDTO createLecture(MultipartFile file,Long subjectId,LectureRequestDTO dto) {
 		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
 		Lecture lecture=new Lecture();
@@ -46,17 +58,17 @@ public class LectureService {
 		}
 		lecture.setProcessed(false);
 		lecture.setFilePath(path.toString());
-		lecture.setUploadDate(LocalDateTime.now());
+		lecture.setUploadDate(LocalDate.now());
 		Lecture savedLecture=lectureRepository.save(lecture);
 		logger.info("Lecture uploaded for subject {}", subjectId);
 
 		return convertToResponseDTO(savedLecture);
 	}
+	
+	// ============== PROCESSING THE LECTURE ==============
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
 
-	    Lecture lecture = lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
-	        ));
+	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
 	    try {
 	    lecture.setFilePath(fileStorageService.moveToProcessed(Paths.get(lecture.getFilePath())).toString());
 	    }catch(IOException e) {
@@ -68,33 +80,6 @@ public class LectureService {
 
 	    return convertToResponseDTO(lectureRepository.save(lecture));
 	}
-	public List<LectureResponseDTO> getLecturesBySubject(long subjectId){
-		return lectureRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
-	}
-	public List<LectureResponseDTO> getProcessedLectures(Long subjectId) {
-
-	    return lectureRepository.findBySubjectIdAndProcessedTrue(subjectId).stream()
-	        .map(this::convertToResponseDTO)
-	        .toList();
-	}
-	public LectureResponseDTO getLectureById(Long lectureId) {
-	    Lecture lecture = lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
-	        ));
-
-	    return convertToResponseDTO(lecture);
-	}
-	public void deleteLecture(long lectureId) {
-		
-	    Lecture lecture= lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-	    fileStorageService.deleteFile(lecture.getFilePath());
-		   
-	    lectureRepository.delete(lecture);
-	    logger.info("Lecture uploaded for subject {}", lectureId);
-
-	
-}
 	public LectureResponseDTO processLecture(long lectureId) {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		String filePath=lecture.getFilePath();
@@ -105,8 +90,103 @@ public class LectureService {
 			
 			e.printStackTrace();
 		}
+
+		aiOutputService.generateAIOutputsForLecture(lecture, extractedText);
+		revisionService.createRevisionSchedule(lecture);
+
 		return markProcessed(lectureId,extractedText);
 	}
+	// ============== DELETE ==============
+	public void deleteLecture(long lectureId) {
+			
+		    Lecture lecture= lectureRepository.findById(lectureId)
+		        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+		    fileStorageService.deleteFile(lecture.getFilePath());
+			   
+		    lectureRepository.delete(lecture);
+		    logger.info("Lecture uploaded for subject {}", lectureId);
+	
+		
+	}
+	// ============== SINGLE FETCH ==============
+	public LectureResponseDTO getLectureById(Long lectureId) {
+	    Lecture lecture = lectureRepository.findById(lectureId)
+	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
+	        ));
+
+	    return convertToResponseDTO(lecture);
+	}
+	// ============== BASIC LISTS ==============
+	public List<LectureResponseDTO> getLecturesBySubject(long subjectId){
+		return lectureRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
+	}
+	public List<LectureResponseDTO> getProcessedLectures(Long subjectId) {
+
+	    return lectureRepository.findBySubjectIdAndProcessedTrue(subjectId).stream().map(this::convertToResponseDTO).toList();
+	}
+	public List<LectureResponseDTO> getPendingLecturesByUser(Long userId) {
+	    return lectureRepository.findPendingLecturesByUserId(userId).stream().map(this::convertToResponseDTO)
+	            .toList();
+	}
+	
+	// ============== PAGINATION ==============
+	public PaginationResponseDTO<LectureResponseDTO> getLecturesBySubject(long subjectId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<Lecture> lectures=lectureRepository.findBySubjectId(subjectId, pageable);
+		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
+		return  PaginationResponseDTO.fromPage(lectures, dtos);
+	}
+	
+	public PaginationResponseDTO<LectureResponseDTO> getLecturesByUser(Long userId,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<Lecture> lectures=lectureRepository.findBySubjectUserId(userId,pageable);
+		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(lectures, dtos);
+	}	
+	
+	public PaginationResponseDTO<LectureResponseDTO> getProcessedLectures(Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<Lecture> lectures=lectureRepository.findByProcessed(true, pageable);
+		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(lectures,dtos);
+	}	
+	
+	public PaginationResponseDTO<LectureResponseDTO> getUnprocessedLectures(Pageable pageable){
+		pageable=validatePageable(pageable);
+		Page<Lecture> lectures=lectureRepository.findByProcessed(false, pageable);
+		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(lectures,dtos);
+	}
+	// ============== SEARCH ==============
+	
+	public PaginationResponseDTO<LectureResponseDTO> getLectures(LectureSearchCriteria criteria,Pageable pageable){
+		pageable=validatePageable(pageable);
+		Specification<Lecture> s=buildSpecification(criteria);
+		Page<Lecture> lecture=lectureRepository.findAll(s,pageable);
+		List<LectureResponseDTO> dtos=lecture.getContent().stream().map(this::convertToResponseDTO).toList();
+		return PaginationResponseDTO.fromPage(lecture, dtos);	
+	}
+
+	Specification<Lecture> buildSpecification(LectureSearchCriteria criteria){
+		
+		    return Specification.where(LectureSpecification.hasKeyword(criteria.getKeyword()))
+		            .and(LectureSpecification.hasSubject(criteria.getSubjectId()))
+		            .and(LectureSpecification.isProcessed(criteria.getProcessed()))
+		            .and(LectureSpecification.uploadDateAfter(criteria.getFromDate()))
+		            .and(LectureSpecification.uploadDateBefore(criteria.getToDate()));
+		
+	}
+	private Pageable validatePageable(Pageable pageable) {
+	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
+	        return PageRequest.of(
+	            pageable.getPageNumber(),
+	            PaginationConfig.getMaxSize(),
+	            pageable.getSort()
+	        );
+	    }
+	    return pageable;
+	}
+
 	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
 		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText());
 	}

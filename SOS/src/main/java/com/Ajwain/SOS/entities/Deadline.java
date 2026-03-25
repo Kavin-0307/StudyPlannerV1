@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 
 @Entity
-@Table(name="deadlines")
+@Table(name="deadlines",indexes= {@Index(name="idx_deadline_subject",columnList="subject_id"),@Index(name="idx_deadline_date",columnList="deadline_date"),@Index(name="idx_deadline_type",columnList="deadline_type")})
 public class Deadline {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -49,6 +49,7 @@ public class Deadline {
 	}
 	public Subject getSubject() {
 		return subject;
+		
 		
 	}
 	

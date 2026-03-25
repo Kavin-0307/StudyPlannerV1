@@ -6,6 +6,6 @@ public enum OutputType {
     REVISION_SHEET,
     ACTION_ITEMS,
     FLASHCARDS,
-    QUIZ
+    QUIZ, IMPORTANT_POINTS
 
 }

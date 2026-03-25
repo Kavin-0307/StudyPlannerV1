@@ -6,7 +6,8 @@ import com.Ajwain.SOS.entities.enums.SubjectTag;
 
 import jakarta.persistence.*;
 @Entity
-@Table(name="subjects")
+@Table(name="subjects",
+indexes= {@Index(name="idx_subject_user",columnList="user_id")})
 public class Subject {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)

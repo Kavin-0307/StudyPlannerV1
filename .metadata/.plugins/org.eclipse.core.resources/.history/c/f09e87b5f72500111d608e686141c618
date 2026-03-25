@@ -1,0 +1,10 @@
+package com.Ajwain.SOS.dto;
+
+import java.util.List;
+
+public class AIRequestDTO {
+	 List<String> keywords;
+	 String summary;
+	 List<String> important_points;
+	 String revision_sheet;
+}

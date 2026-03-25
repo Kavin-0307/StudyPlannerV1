@@ -1,0 +1,49 @@
+package com.Ajwain.SOS.services;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.Ajwain.SOS.dto.AIRequestDTO;
+import com.Ajwain.SOS.dto.AIResponseDTO;
+import com.Ajwain.SOS.entities.AI_Output;
+import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.enums.OutputType;
+import com.Ajwain.SOS.repositories.AIOutputRepository;
+
+@Service
+public class AIOutputService {
+	private final AIOutputRepository aiOutputRepository;
+	private final String url="http://127.0.0.1:8000";
+	private final RestTemplate restTemplate;
+	public AIOutputService(AIOutputRepository aiOutputRepository) {
+		this.aiOutputRepository=aiOutputRepository;
+		this.restTemplate=new RestTemplate();
+	}
+	public void  generateAIOutputsForLecture(Lecture lecture,String lectureText) {
+		AIResponseDTO response=callAIService(lectureText);
+		saveAIOutput(lecture,response);
+	}
+	private AIResponseDTO callAIService(String lectureText) {
+		AIRequestDTO request=new AIRequestDTO();
+		request.setText(lectureText);
+		AIResponseDTO response=restTemplate.postForObject(url, request, AIResponseDTO.class);
+		return response;
+	}
+	private void saveAIOutput(Lecture lecture,AIResponseDTO response) {
+		AI_Output keywordsOutput=new AI_Output();
+		keywordsOutput.setLecture(lecture);
+		keywordsOutput.setOutputType(OutputType.KEYWORDS);
+		keywordsOutput.setOutputContent(String.join(", ",response.getKeywords()));
+		AI_Output summaryOutput = new AI_Output();
+        summaryOutput.setLecture(lecture);
+        summaryOutput.setOutputType(OutputType.SUMMARY);
+        summaryOutput.setOutputContent(response.getSummary());
+        aiOutputRepository.save(summaryOutput);
+        AI_Output pointsOutput = new AI_Output();
+        pointsOutput.setLecture(lecture);
+        pointsOutput.setOutputType(OutputType.IMPORTANT_POINT);
+        pointsOutput.setOutputContent(response.getSummary());
+        aiOutputRepository.save(pointsOutput);
+	}
+}

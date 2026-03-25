@@ -1,0 +1,9 @@
+package com.Ajwain.SOS.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.Ajwain.SOS.entities.Revision;
+
+public interface RevisionRepository extends JpaRepository<Revision,Long> {
+
+}

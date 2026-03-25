@@ -1,0 +1,6 @@
+package com.Ajwain.SOS.config;
+
+public class PaginationConfig {
+	static int DEFAULT_SIZE=20;
+	static int MAX_SIZ50;
+}

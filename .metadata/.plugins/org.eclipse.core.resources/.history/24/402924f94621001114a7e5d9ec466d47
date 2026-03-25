@@ -1,7 +1,0 @@
-package com.Ajwain.SOS.repositories;
-
-
-@Repository
-public interface DeadlineRepository extends JpaRepository<Deadline,Long>{
-
-}

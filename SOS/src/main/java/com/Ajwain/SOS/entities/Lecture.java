@@ -2,9 +2,12 @@ package com.Ajwain.SOS.entities;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 @Entity
-@Table(name="lectures")
+@Table(name="lectures",indexes= {
+@Index(name="idx_lecture_subject",columnList="subject_id"),
+@Index(name="idx_lecture_upload_date",columnList="upload_date"),
+@Index(name="idx_lecture_processed",columnList="processed")})
 public class Lecture {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -26,11 +29,11 @@ public class Lecture {
 	@Column(name="processed", nullable=false)
 	private boolean processed = false;
 	
-	@Column(nullable=false, updatable=false)
-	private LocalDateTime uploadDate;
+	@Column(name="upload_date",nullable=false, updatable=false)
+	private LocalDate uploadDate;
 	@PrePersist
 	protected void onCreate(){
-	    uploadDate = LocalDateTime.now();
+	    uploadDate = LocalDate.now();
 	}
 	
 	public long getId() {
@@ -62,10 +65,10 @@ public class Lecture {
 	public boolean getProcessed() {
 		return processed;
 	}
-	public void setUploadDate(LocalDateTime uploadDate) {
+	public void setUploadDate(LocalDate uploadDate) {
 		this.uploadDate=uploadDate;
 	}
-	public LocalDateTime getUploadDate() {
+	public LocalDate getUploadDate() {
 		return uploadDate;
 	}
 	

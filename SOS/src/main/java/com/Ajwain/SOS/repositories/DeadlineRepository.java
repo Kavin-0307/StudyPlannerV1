@@ -3,15 +3,19 @@ package com.Ajwain.SOS.repositories;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.Ajwain.SOS.entities.Deadline;
+import com.Ajwain.SOS.entities.enums.DeadlineType;
 
 @Repository
-public interface DeadlineRepository extends JpaRepository<Deadline,Long>{
+public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpecificationExecutor<Deadline>{
 	List<Deadline> findBySubjectUserId(long userId);
 	List<Deadline> findBySubjectId(Long subjectId);
 	List<Deadline> findBySubjectUserIdAndDeadlineDateAfterOrderByDeadlineDateAsc(long userId,LocalDateTime now);
@@ -25,6 +29,14 @@ public interface DeadlineRepository extends JpaRepository<Deadline,Long>{
 		    ORDER BY d.deadlineDate ASC, s.subjectPriority ASC
 		""")
 		List<Deadline> findUpcomingDeadlinesWithPriority(@Param("userId") Long userId);
+	Page<Deadline> findBySubjectId(long subjectId,Pageable pageable);
+	Page<Deadline> findBySubjectUserId(Long userId,Pageable pageable);
+
+	Page<Deadline> findByDeadlineDateAfter(LocalDateTime date,Pageable pageable);
+	Page<Deadline> findByType(DeadlineType type,Pageable pageable);
+	Page<Deadline> findBySubjectIdAndType(long subjectIdj,DeadlineType type,Pageable pageable);
+	
+	Page<Deadline> findByDeadlineDateBefore(LocalDateTime dateId,Pageable pageable);
 }
 /*The query does these things in order:
  * it fetches the deadline and uses join subject for filtering and sorting. 

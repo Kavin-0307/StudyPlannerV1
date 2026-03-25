@@ -1,0 +1,58 @@
+package com.Ajwain.SOS.entities;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.Ajwain.SOS.entities.enums.RevisionStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="Revision")
+public class Revision {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
+	
+	@ManyToOne(fetch=FetchType.LAZY,optional=false)
+	@JoinColumn(name="lecture_id",nullable=false)
+	private Lecture lecture;
+	@Column(name="revision_date",nullable=false)
+	private LocalDate revisionDate;
+	@Column(name="revision_number",nullable=false)
+	private int revisionNumber;
+	@Column(name="completed",nullable=false)
+	private RevisionStatus status;
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+	@PrePersist
+	protected void onCreate() {
+	    createdAt = LocalDateTime.now();
+	}
+	
+	public long getRevisonId() {
+		return id;
+	}
+	
+	public Lecture getLecture() {
+		return lecture;
+	}
+	public LocalDate getRevisionDate() {
+		return revisionDate;
+	}
+	public int getRevisionNumber() {
+		return revisionNumber;
+	}
+	public RevisionStatus getCompleted() {
+		return status;
+	}
+}

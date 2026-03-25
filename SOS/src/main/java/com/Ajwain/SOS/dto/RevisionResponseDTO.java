@@ -1,0 +1,47 @@
+package com.Ajwain.SOS.dto;
+
+import java.time.LocalDate;
+
+import com.Ajwain.SOS.entities.enums.RevisionStatus;
+
+public class RevisionResponseDTO {
+
+    private Long revisionId;
+    private Long lectureId;
+    private Long subjectId;
+    private LocalDate revisionDate;
+    private int revisionNumber;
+    private RevisionStatus status;
+
+    public RevisionResponseDTO() {}
+
+    public RevisionResponseDTO(Long revisionId,Long lectureId,Long subjectId,LocalDate revisionDate,int revisionNumber,RevisionStatus status) {
+        this.revisionId = revisionId;
+        this.lectureId = lectureId;
+        this.subjectId = subjectId;
+        this.revisionDate = revisionDate;
+        this.revisionNumber = revisionNumber;
+        this.status = status;
+    }
+
+    public Long getRevisionId() {
+        return revisionId;
+    }
+    public Long getLectureId() {
+        return lectureId;
+    }
+    public Long getSubjectId() {
+        return subjectId;
+    }
+    public LocalDate getRevisionDate() {
+        return revisionDate;
+    }
+
+    public int getRevisionNumber() {
+        return revisionNumber;
+    }
+
+    public RevisionStatus getStatus() {
+        return status;
+    }
+}

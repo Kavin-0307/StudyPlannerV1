@@ -1,9 +1,0 @@
-package com.Ajwain.SOS.entities;
-
-import jakarta.persistence.*;
-
-public class Subject {
-	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private User user;
-}

@@ -1,0 +1,73 @@
+package com.Ajwain.SOS.controllers;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.Ajwain.SOS.dto.PaginationResponseDTO;
+import com.Ajwain.SOS.dto.RevisionResponseDTO;
+import com.Ajwain.SOS.services.RevisionService;
+
+@RestController
+@RequestMapping("/api/revisions")
+public class RevisionController {
+
+    private final RevisionService revisionService;
+
+    public RevisionController(RevisionService revisionService) {
+        this.revisionService = revisionService;
+    }
+
+    // Get revisions by user
+    @GetMapping
+    public PaginationResponseDTO<RevisionResponseDTO> getRevisionsByUser(
+            @RequestParam Long userId,
+            Pageable pageable) {
+
+        return revisionService.getRevisionsByUser(userId, pageable);
+    }
+
+    // Get revisions for a lecture
+    @GetMapping("/lecture")
+    public PaginationResponseDTO<RevisionResponseDTO> getRevisionsForLecture(
+            @RequestParam Long lectureId,
+            Pageable pageable) {
+
+        return revisionService.getRevisionsForLecture(lectureId, pageable);
+    }
+
+    // Get due revisions
+    @GetMapping("/due")
+    public PaginationResponseDTO<RevisionResponseDTO> getDueRevisions(
+            @RequestParam Long userId,
+            Pageable pageable) {
+
+        return revisionService.getDueRevisions(userId, pageable);
+    }
+
+    // Get completed revisions
+    @GetMapping("/completed")
+    public PaginationResponseDTO<RevisionResponseDTO> getCompletedRevisions(
+            @RequestParam Long userId,
+            Pageable pageable) {
+
+        return revisionService.getCompletedRevisions(userId, pageable);
+    }
+
+    // Get pending revisions
+    @GetMapping("/pending")
+    public PaginationResponseDTO<RevisionResponseDTO> getPendingRevisions(
+            @RequestParam Long userId,
+            Pageable pageable) {
+
+        return revisionService.getPendingRevisions(userId, pageable);
+    }
+
+    // Mark revision completed
+    @PatchMapping("/{revisionId}/complete")
+    public ResponseEntity<RevisionResponseDTO> markRevisionCompleted(
+            @PathVariable Long revisionId) {
+
+        return ResponseEntity.ok(revisionService.markRevisionCompleted(revisionId));
+    }
+}

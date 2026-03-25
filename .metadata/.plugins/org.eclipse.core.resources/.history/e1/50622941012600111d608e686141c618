@@ -1,0 +1,30 @@
+package com.Ajwain.SOS.services;
+
+import org.springframework.stereotype.Service;
+
+import com.Ajwain.SOS.entities.enums.StudyStatus;
+import com.Ajwain.SOS.repositories.LectureRepository;
+import com.Ajwain.SOS.repositories.StudyPlanRepository;
+
+@Service
+public class AnalyticsService {
+	private final LectureRepository lectureRepository;
+	private final StudyPlanRepository studyPlanRepository;
+	public AnalyticsService(LectureRepository lectureRepository,StudyPlanRepository sutdyPlanRepository) {
+		this.lectureRepository=lectureRepository;
+		this.studyPlanRepository=studyPlanRepository;
+	}
+	public Long getCompletedLectures(Long userId) {
+		return lectureRepository.countProcessedLecturesByUserId(userId);
+	}
+	public Long getPendingLectures(Long userID) {
+		return lectureRepository.countPendingLecturesByUserId(userID);
+	}
+	public Long getStudyProgressPercentage(Long userId) {
+		long totalPlans=studyPlanRepository.countByUserId(userId);
+		if(totalPlans==0)
+			return 0L;
+		long completedPlans=studyPlanRepository.countByUserIdAndStatus(userId, StudyStatus.COMPLETED);
+		return Math.round(((double)completedPlans/totalPlans)*100)
+	}
+}

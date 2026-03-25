@@ -1,0 +1,27 @@
+package com.Ajwain.SOS.repositories;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.Subject;
+
+@Repository
+public interface LectureRepository extends JpaRepository<Lecture,Long>{
+
+	List<Lecture> findBySubjectId(long subjectId);
+	List<Lecture> findBySubjectIdAndProcessedTrue(long subjectId);
+	@Query(
+			"""
+			SELECT COUNT(a) FROM AI_Output a"+
+			"WHERE a.lecutre.subject.user.id= :userId "+
+			"AND processed=true"
+			""")
+	
+	
+	Long countProcessedLecturesByUserId(Long userId);
+
+}

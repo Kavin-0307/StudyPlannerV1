@@ -1,12 +1,12 @@
 package com.Ajwain.SOS.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public record LectureResponseDTO(
         Long id,
         Long subjectId,
         String filePath,
         boolean processed,
-        LocalDateTime uploadDate
+        LocalDate uploadDate
         ,String lectureText
 ) {}

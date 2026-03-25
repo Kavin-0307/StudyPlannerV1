@@ -1,63 +1,83 @@
 package com.Ajwain.SOS.controllers;
-import java.util.List;
 
+import java.time.LocalDate;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
+import com.Ajwain.SOS.dto.LectureSearchCriteria;
+import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.services.LectureService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/lectures")
 public class LectureController {
-	private final LectureService lectureService;
-	public LectureController(LectureService lectureService) {
-		this.lectureService=lectureService;
-	}
-	@PostMapping("/{subjectId}")
-	public ResponseEntity<LectureResponseDTO> createLecture(
-	       @PathVariable Long subjectId,
-	        @Valid @RequestBody LectureRequestDTO dto){
 
-	    return ResponseEntity.status(HttpStatus.CREATED)
-	            .body(lectureService.createLecture(subjectId,dto));
-	}
-	@PostMapping("/{lectureId}/process")
-	public ResponseEntity<LectureResponseDTO> markProcessed(
-	        @PathVariable Long lectureId,
-	        @RequestBody String extractedText){
+    private final LectureService lectureService;
 
-	    return ResponseEntity.ok(
-	        lectureService.markProcessed(lectureId, extractedText)
-	    );
-	}
-	@GetMapping("/subject/{subjectId}")
-	public ResponseEntity<List<LectureResponseDTO>> getLecturesBySubject(@PathVariable Long subjectId){
-		return ResponseEntity.ok(lectureService.getLecturesBySubject(subjectId));
-	}
-	@GetMapping("/processed/{subjectId}")
-	public ResponseEntity<List<LectureResponseDTO>> getProcessedLectures(
-	        @PathVariable Long subjectId){
+    public LectureController(LectureService lectureService) {
+        this.lectureService = lectureService;
+    }
 
-	    return ResponseEntity.ok(
-	        lectureService.getProcessedLectures(subjectId)
-	    );
-	}
-	@DeleteMapping("/{lectureId}")
-	public ResponseEntity<Void> deleteLecture(@PathVariable Long lectureId){
+    // ================= CREATE =================
+    @PostMapping(value = "/{subjectId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<LectureResponseDTO> createLecture(
+            @PathVariable Long subjectId,
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("dto") LectureRequestDTO dto) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(lectureService.createLecture(file, subjectId, dto));
+    }
+
+    // ================= PROCESS =================
+    @PostMapping("/{lectureId}/process")
+    public ResponseEntity<LectureResponseDTO> processLecture(
+            @PathVariable Long lectureId) {
+
+        return ResponseEntity.ok(
+                lectureService.processLecture(lectureId)
+        );
+    }
+
+    // ================= DELETE =================
+    @DeleteMapping("/{lectureId}")
+    public ResponseEntity<Void> deleteLecture(@PathVariable Long lectureId) {
         lectureService.deleteLecture(lectureId);
         return ResponseEntity.noContent().build();
     }
-	
-	
+
+    // ================= GET ONE =================
+    @GetMapping("/{lectureId}")
+    public LectureResponseDTO getLecture(@PathVariable Long lectureId) {
+        return lectureService.getLectureById(lectureId);
+    }
+
+    // ================= SEARCH / FILTER / PAGINATION =================
+    @GetMapping
+    public ResponseEntity<PaginationResponseDTO<LectureResponseDTO>> getLectures(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long subjectId,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Boolean processed,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            Pageable pageable) {
+
+        LectureSearchCriteria criteria = new LectureSearchCriteria();
+        criteria.setKeyword(keyword);
+        criteria.setSubjectId(subjectId);
+        criteria.setProcessed(processed);
+        criteria.setFromDate(fromDate);
+        criteria.setToDate(toDate);
+
+        return ResponseEntity.ok(
+                lectureService.getLectures(criteria, pageable)
+        );
+    }
 }

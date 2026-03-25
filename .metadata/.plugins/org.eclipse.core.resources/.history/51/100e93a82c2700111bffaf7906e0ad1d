@@ -1,0 +1,46 @@
+package com.Ajwain.SOS.repositories;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.Subject;
+
+@Repository
+public interface LectureRepository extends JpaRepository<Lecture,Long>{
+
+	List<Lecture> findBySubjectId(long subjectId);
+	List<Lecture> findBySubjectIdAndProcessedTrue(long subjectId);
+	@Query(
+			"""
+			SELECT COUNT(a) FROM AI_Output a
+			WHERE a.lecture.subject.user.id= :userId 
+			AND a.processed=true
+			""")
+	
+	
+	Long countProcessedLecturesByUserId(Long userId);
+	@Query(
+			"""
+			SELECT COUNT(a) FROM AI_Output a
+			WHERE a.lecture.subject.user.id= :userId 
+			AND a.processed=false
+			""")
+	Long countPendingLecturesByUserId(Long userId);
+	@Query("""
+			SELECT l FROM Lecture l
+			WHERE l.subject.user.id = :userId
+			AND l.processed = false
+			""")
+			List<Lecture> findPendingLecturesByUserId(Long userId);
+	Page<Lecture> findBySubjectId(long subjectId,Pageable pageable);
+	Page<Lecture> findBySubjectUserId(long userId,Pageable pageable);
+	Page<Lecture> findByProcessed(boolean processed,Pageable pageable);
+	Page<Lecture> findBySubjectIdAndProcessed(Long subjectId, boolean processed, Pageable pageable)
+}

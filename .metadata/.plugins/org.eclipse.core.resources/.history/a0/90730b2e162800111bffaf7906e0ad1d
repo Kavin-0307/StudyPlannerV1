@@ -1,0 +1,26 @@
+package com.Ajwain.SOS.repositories;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.Ajwain.SOS.entities.Revision;
+import com.Ajwain.SOS.entities.enums.RevisionStatus;
+
+public interface RevisionRepository extends JpaRepository<Revision,Long> {
+	List<Revision> findByLectureId(Long lectureId);
+	
+	List<Revision> findByLectureSubjectUserId(Long userId);
+	List<Revision> findByLectureSubjectUserIdAndRevisionDateLessThanEqualAndStatus(
+		    Long userId,LocalDate date,RevisionStatus status
+		);
+	Long countByLectureSubjectUserIdAndStatus(Long userId, RevisionStatus status);
+	Page<Revision> findByLectureSubjectUserId(Long userId, Pageable pageable);
+	Page<Revision> findByLectureId(Long lectureId, Pageable pageable);
+	Page<Revision> findByLectureSubjectUserIdAndStatus(Long userId, RevisionStatus status, Pageable pageable);
+	Page<Revision> findByLectureSubjectUserIdAndRevisionDateLessThanEqual(Long userId, LocalDate date, Pageable pageable);
+	Page<Revision> findByRevisionDateLessThanEqualAndStatus(LocalDate date, RevisionStatus status, Pageable pageable);
+}

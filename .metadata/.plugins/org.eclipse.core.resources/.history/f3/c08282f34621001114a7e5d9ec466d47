@@ -1,5 +1,0 @@
-package com.Ajwain.SOS.repositories;
-
-public interface DeadlineRepository {
-
-}

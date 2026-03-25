@@ -1,0 +1,74 @@
+package com.Ajwain.SOS.entities;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+@Entity
+@Table(name="lectures")
+public class Lecture {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
+	
+	@ManyToOne(fetch=FetchType.LAZY,optional=false)
+	@JoinColumn(name="subject_id",nullable=false)
+	private Subject subject;
+	
+	@Column(name="file_path",nullable=false)
+	private String filePath;
+	
+	
+	@Lob
+	@Column(name="text_content")
+	private String lectureText;
+	
+	
+	@Column(name="processed", nullable=false)
+	private boolean processed = false;
+	
+	@Column(nullable=false, updatable=false)
+	private LocalDate uploadDate;
+	@PrePersist
+	protected void onCreate(){
+	    uploadDate = LocalDate.now();
+	}
+	
+	public long getId() {
+		return id;
+	}
+	
+	public Subject getSubject() {
+		return subject;
+	}
+	public void setSubject(Subject subject) {
+		this.subject=subject;
+	}
+	
+	public void setFilePath(String filePath) {
+		this.filePath=filePath;
+	}
+	public String getFilePath() {
+		return filePath;
+	}
+	public String getLectureText() {
+		return lectureText;
+	}
+	public void setLectureText(String lectureText) {
+		this.lectureText=lectureText;
+	}
+	public void setProcessed(boolean processed) {
+		this.processed=processed;
+	} 
+	public boolean getProcessed() {
+		return processed;
+	}
+	public void setUploadDate(LocalDateTime uploadDate) {
+		this.uploadDate=uploadDate;
+	}
+	public LocalDateTime getUploadDate() {
+		return uploadDate;
+	}
+	
+	
+}

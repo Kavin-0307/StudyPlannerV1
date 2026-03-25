@@ -1,0 +1,40 @@
+package com.Ajwain.SOS.dto;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.query.Page;
+
+public class PaginationResponseDTO<T> {
+	List<T> data=new ArrayList<>();
+	int page;
+	int size;
+	long totalElements;
+	int totalPages;
+	boolean last;
+	public static <T> PaginationResponseDTO<T> fromPage(Page<T> page,List<T> data){
+		PaginationResponseDTO<T> response=new PaginationResponseDTO<T>();
+		response.setData(data);
+		response.setLast(page.);
+		return response;
+	}
+	public void setData(List<T> data) {
+		this.data=data;
+	}
+	public void setPage(int page) {
+		this.page=page;
+	}
+	public void setSize(int size) {
+		this.size=size;
+	}
+	public void setTotalElements(long totalElements) {
+		this.totalElements=totalElements;
+	}
+	public void setTotalPages(int totalPages) {
+		this.totalPages=totalPages;
+	}
+	public void setLast(boolean last) {
+		this.last=last;
+	}
+	
+}

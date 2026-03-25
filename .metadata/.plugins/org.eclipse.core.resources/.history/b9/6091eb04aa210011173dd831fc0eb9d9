@@ -1,5 +1,0 @@
-package com.Ajwain.SOS.dto;
-
-public class LectureRequestDTO {
-
-}
