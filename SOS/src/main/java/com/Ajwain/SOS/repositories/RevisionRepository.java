@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.Ajwain.SOS.entities.Revision;
+import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.entities.enums.RevisionStatus;
 
 public interface RevisionRepository extends JpaRepository<Revision,Long>,JpaSpecificationExecutor<Revision> {
@@ -19,9 +20,13 @@ public interface RevisionRepository extends JpaRepository<Revision,Long>,JpaSpec
 		    Long userId,LocalDate date,RevisionStatus status
 		);
 	Long countByLectureSubjectUserIdAndStatus(Long userId, RevisionStatus status);
-	Page<Revision> findByLectureSubjectUserId(Long userId, Pageable pageable);
+	Page<Revision> findByLectureSubjectUserId(User user, Pageable pageable);
 	Page<Revision> findByLectureId(Long lectureId, Pageable pageable);
-	Page<Revision> findByLectureSubjectUserIdAndStatus(Long userId, RevisionStatus status, Pageable pageable);
-	Page<Revision> findByLectureSubjectUserIdAndRevisionDateLessThanEqual(Long userId, LocalDate date, Pageable pageable);
+	Page<Revision> findByLectureSubjectUserIdAndStatus(User user, RevisionStatus status, Pageable pageable);
+	Page<Revision> findByLectureSubjectUserIdAndRevisionDateLessThanEqual(User user, LocalDate date, Pageable pageable);
 	Page<Revision> findByRevisionDateLessThanEqualAndStatus(LocalDate date, RevisionStatus status, Pageable pageable);
+
+	Page<Revision> findByLectureSubjectUserAndRevisionDateLessThanEqual(User user, LocalDate now, Pageable pageable);
+
+	Page<Revision> findByLectureSubjectUserAndStatus(User user, RevisionStatus pending, Pageable pageable);
 }

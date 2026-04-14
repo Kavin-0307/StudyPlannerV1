@@ -27,7 +27,7 @@ public class DashboardService {
     public DashboardResponseDTO getDashboard(Long userId) {
         List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan(userId);
         
-        List<DeadlineResponseDTO> upcomingDeadlines =deadlineService.getUpcomingDeadlines(userId);
+        List<DeadlineResponseDTO> upcomingDeadlines =deadlineService.getUpcomingDeadlines();
         
         List<LectureResponseDTO> pendingLectures=lectureService.getPendingLecturesByUser(userId);
         Long completedLectures=analyticsService.getCompletedLectures(userId);

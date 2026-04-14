@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.Ajwain.SOS.auth.CurrentUserService;
 import com.Ajwain.SOS.config.PaginationConfig;
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.Ajwain.SOS.entities.StudyPlan;
+import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.entities.enums.DeadlineType;
 import com.Ajwain.SOS.entities.enums.StudyStatus;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
@@ -36,15 +38,19 @@ public class StudyPlanService {
 	private final StudyPlanRepository studyPlanRepository;
 	private final Logger logger=LoggerFactory.getLogger(StudyPlanService.class);
 	private final DeadlineRepository deadlineRepository;
-	public StudyPlanService(StudyPlanRepository studyPlanRepository,DeadlineRepository deadlineRepository) {
+	private final CurrentUserService currentUserService;
+	public StudyPlanService(StudyPlanRepository studyPlanRepository,DeadlineRepository deadlineRepository,CurrentUserService currentUserService) {
 		this.studyPlanRepository=studyPlanRepository;
+		this.currentUserService=currentUserService;
 		this.deadlineRepository=deadlineRepository;
 	}
 	@Transactional
-	public List<StudyPlanResponseDTO> generateStudyPlan(long userId){
+	public List<StudyPlanResponseDTO> generateStudyPlan(){
+		 User user = currentUserService.getCurrentUser(); 
+	        long userId = user.getId();
 		int MIN_SESSION=20;
 		studyPlanRepository.deleteByUserId(userId);
-		List<Deadline> deadlines=deadlineRepository.findUpcomingDeadlinesWithPriority(userId);
+		List<Deadline> deadlines=deadlineRepository.findUpcomingDeadlinesWithPriority(user);
 		Map<LocalDate,List<StudyPlan>> schedule=new HashMap<>();
 		int DAILY_LIMIT=180;
 		LocalDate today=LocalDate.now();
@@ -79,7 +85,7 @@ public class StudyPlanService {
 				double progressionFactor=1+((double)i/diffInDays);
 				int duration=(int)(adjustedMinutes*progressionFactor);
 				StudyPlan plan=new StudyPlan();
-				plan.setUser(d.getSubject().getUser());
+				plan.setUser(user);
 				plan.setDurationMinutes(duration);
 				plan.setStudyDate(today.plusDays(i));
 				plan.setSubject(d.getSubject());
@@ -141,8 +147,12 @@ public class StudyPlanService {
 	    StudyPlan plan = studyPlanRepository.findById(planId)
 	        .orElseThrow(() -> new ResourceNotFoundException("Study plan not found"
 	        ));
+	    User user=currentUserService.getCurrentUser();
+	    if(!plan.getUser().equals(user))
+	    	throw new ResourceNotFoundException("Unauthorized");
+	    	
 	    if(status == StudyStatus.MISSED) {
-	        regenerateStudyPlan(plan.getUser().getId());
+	        regenerateStudyPlan();
 	    }
 	    plan.setStudyStatus(status);
 
@@ -150,33 +160,31 @@ public class StudyPlanService {
 
 	    return convertToResponseDTO(plan);
 	}
-	public List<StudyPlanResponseDTO> getTodayPlan(Long userId){
-		LocalDate today=LocalDate.now();
-		List<StudyPlan> plans =studyPlanRepository.findTodayPlanWithRelations(userId, today);
-		return plans.stream().map(this::convertToResponseDTO).toList();
+	public List<StudyPlanResponseDTO> getTodayPlan(){
+		User user=currentUserService.getCurrentUser();
+		return studyPlanRepository.findTodayPlanWithRelations(user.getId(), LocalDate.now()).stream().map(this::convertToResponseDTO).toList();
 	}
-	public List<StudyPlanResponseDTO> getStudyPlanByUser(long userId) {
-		if(studyPlanRepository.findByUserId(userId).isEmpty())
-			throw new ResourceNotFoundException("The study plan was not found");
-		return studyPlanRepository.findFullPlanWithRelations(userId).stream().map(this::convertToResponseDTO).toList();
-		
-		
-	}
-	public List<StudyPlanResponseDTO> regenerateStudyPlan(Long userId) {
-	    return generateStudyPlan(userId);
-	}
-	public List<StudyPlanResponseDTO> getPlanByDateRange(
-	        Long userId, LocalDate start, LocalDate end) {
+	public List<StudyPlanResponseDTO> getStudyPlanByUser() {
+		 User user = currentUserService.getCurrentUser(); // ✅ FIX
+		 List<StudyPlan> plans = studyPlanRepository.findFullPlanWithRelations(user.getId());
+		 if (plans.isEmpty()) {
+		        throw new ResourceNotFoundException("The study plan was not found");
+		    }
 
-	    List<StudyPlan> plans = studyPlanRepository
-	        .findPlanInRangeWithRelations(userId, start, end);
-
-	    return plans.stream()
-	        .map(this::convertToResponseDTO)
-	        .toList();
+		 return plans.stream().map(this::convertToResponseDTO).toList();
+		
 	}
-	public Map<String,Long> getProgress(Long userId){
-		List<StudyPlan> plans=studyPlanRepository.findByUserId(userId);
+	public List<StudyPlanResponseDTO> regenerateStudyPlan() {
+	    return generateStudyPlan();
+	}
+	public List<StudyPlanResponseDTO> getPlanByDateRange(LocalDate start, LocalDate end) {
+	    User user = currentUserService.getCurrentUser();
+	    return studyPlanRepository.findPlanInRangeWithRelations(user.getId(), start, end).stream().map(this::convertToResponseDTO).toList();
+	}
+	public Map<String,Long> getProgress(){
+		 User user = currentUserService.getCurrentUser();
+		 
+		List<StudyPlan> plans=studyPlanRepository.findByUserId(user.getId());
 		long completed=plans.stream().filter(p->p.getStudyStatus()==StudyStatus.COMPLETED).count();
 		long pending=plans.stream().filter(p->p.getStudyStatus()==StudyStatus.PLANNED).count();
 		Map<String,Long> result=new HashMap<>();
@@ -192,52 +200,61 @@ public class StudyPlanService {
 				studyPlan.getDurationMinutes(),
 				studyPlan.getStudyStatus());
 	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlansByUser(long userId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserId(userId,pageable);
-		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(studyPlan, dtos);
-	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(long userId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserIdAndStudyDate(userId,LocalDate.now(),pageable);
-		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(studyPlan, dtos);
-	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getCompletedPlans(long userId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<StudyPlan> studyPlan=studyPlanRepository.findByUserIdAndStudyStatus(userId,StudyStatus.COMPLETED,pageable);
-		List<StudyPlanResponseDTO> dtos=studyPlan.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(studyPlan, dtos);
-	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getPendingPlans(
-	        long userId, Pageable pageable) {
+	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(Pageable pageable) {
+
+	    User user = currentUserService.getCurrentUser();
 	    pageable = validatePageable(pageable);
-	    Page<StudyPlan> studyPlanPage =studyPlanRepository.findByUserIdAndStudyStatus(userId, StudyStatus.PLANNED, pageable);
-	    List<StudyPlanResponseDTO> dtos = studyPlanPage.getContent().stream().map(this::convertToResponseDTO).toList();
-	    return PaginationResponseDTO.fromPage(studyPlanPage, dtos);
+	    Page<StudyPlan> page=studyPlanRepository.findByUserId(user.getId(), pageable);
+	    List<StudyPlanResponseDTO> dtos =
+	            page.getContent().stream().map(this::convertToResponseDTO).toList();
+
+	    return PaginationResponseDTO.fromPage(page, dtos);
 	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getPlanByDateRange(
-	        long userId, LocalDate start, LocalDate end, Pageable pageable) {
+	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
+	    User user = currentUserService.getCurrentUser(); 
+	    pageable = validatePageable(pageable);
+	    Page<StudyPlan> page =studyPlanRepository.findByUserIdAndStudyDate(user.getId(), LocalDate.now(), pageable);
+
+	    List<StudyPlanResponseDTO> dtos =page.getContent().stream().map(this::convertToResponseDTO).toList();
+	    return PaginationResponseDTO.fromPage(page, dtos);
+	 
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getCompletedPlans(Pageable pageable) {
+
+	    User user = currentUserService.getCurrentUser(); 
+	    pageable = validatePageable(pageable);
+	    Page<StudyPlan> page =studyPlanRepository.findByUserIdAndStudyStatus(user.getId(), StudyStatus.COMPLETED, pageable);
+	    List<StudyPlanResponseDTO> dtos =page.getContent().stream().map(this::convertToResponseDTO).toList();
+	    return PaginationResponseDTO.fromPage(page, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getPendingPlans(Pageable pageable) {
+
+	    User user = currentUserService.getCurrentUser(); 
+	    pageable = validatePageable(pageable);
+	    Page<StudyPlan> page =studyPlanRepository.findByUserIdAndStudyStatus(user.getId(), StudyStatus.PLANNED, pageable);
+	    List<StudyPlanResponseDTO> dtos =page.getContent().stream().map(this::convertToResponseDTO).toList();
+	    return PaginationResponseDTO.fromPage(page, dtos);
+	}
+	public PaginationResponseDTO<StudyPlanResponseDTO> getPlanByDateRange(LocalDate start, LocalDate end, Pageable pageable) {
+
+	    User user = currentUserService.getCurrentUser(); // ✅ FIX
 
 	    pageable = validatePageable(pageable);
 
-	    Page<StudyPlan> studyPlanPage =
-	            studyPlanRepository.findByUserIdAndStudyDateBetween(
-	                    userId, start, end, pageable);
-
-	    List<StudyPlanResponseDTO> dtos = studyPlanPage.getContent()
-	            .stream()
-	            .map(this::convertToResponseDTO)
-	            .toList();
-
-	    return PaginationResponseDTO.fromPage(studyPlanPage, dtos);
+	    Page<StudyPlan> page =
+	            studyPlanRepository.findByUserIdAndStudyDateBetween(user.getId(), start, end, pageable);
+	    List<StudyPlanResponseDTO> dtos =page.getContent().stream().map(this::convertToResponseDTO).toList();
+	    return PaginationResponseDTO.fromPage(page, dtos);
 	}
-	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(StudyPlanSearchCriteria criteria,Pageable pageable){
-	    pageable=validatePageable(pageable);
-	    Specification<StudyPlan> spec =buildSpecification(criteria);
-	    Page<StudyPlan> plans=studyPlanRepository.findAll(spec,pageable);
-	    List<StudyPlanResponseDTO> dtos =plans.getContent().stream().map(this::convertToResponseDTO).toList();
+	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(StudyPlanSearchCriteria criteria, Pageable pageable) {
+
+	    User user = currentUserService.getCurrentUser(); 
+	    pageable = validatePageable(pageable);
+	    Specification<StudyPlan> spec =buildSpecification(criteria).and(StudyPlanSpecification.hasUser(user.getId()));
+	    Page<StudyPlan> plans = studyPlanRepository.findAll(spec, pageable);
+
+	    List<StudyPlanResponseDTO> dtos =
+	            plans.getContent().stream().map(this::convertToResponseDTO).toList();
 
 	    return PaginationResponseDTO.fromPage(plans, dtos);
 	}

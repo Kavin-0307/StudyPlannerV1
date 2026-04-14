@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.Ajwain.SOS.entities.Lecture;
+import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.entities.User;
 
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture,Long> ,JpaSpecificationExecutor<Lecture>{
@@ -44,5 +46,7 @@ public interface LectureRepository extends JpaRepository<Lecture,Long> ,JpaSpeci
 	Page<Lecture> findByProcessed(boolean processed,Pageable pageable);
 	Page<Lecture> findBySubjectIdAndProcessed(Long subjectId, boolean processed, Pageable pageable);
     Page<Lecture> findAll(Specification<Lecture> spec, Pageable pageable);
+	Page<Lecture> findBySubject(Subject subject, Pageable pageable);
+	Page<Lecture> findBySubjectUserAndProcessed(User user, boolean b, Pageable pageable);
 
 }

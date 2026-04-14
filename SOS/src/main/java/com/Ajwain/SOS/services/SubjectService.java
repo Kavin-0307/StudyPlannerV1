@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.Ajwain.SOS.auth.CurrentUserService;
 import com.Ajwain.SOS.config.PaginationConfig;
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.SubjectRequestDTO;
@@ -20,85 +21,107 @@ import com.Ajwain.SOS.exception.BadRequestException;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.SubjectRepository;
 import com.Ajwain.SOS.repositories.UserRepository;
+
 @Service
 public class SubjectService {
-	private final Logger logger=LoggerFactory.getLogger(SubjectService.class);
-	private final SubjectRepository subjectRepository;
-	private final UserRepository userRepository;
-	public SubjectService(SubjectRepository subjectRepository,UserRepository userRepository){
-		this.userRepository=userRepository;
-		this.subjectRepository=subjectRepository;
-	}
-	public SubjectResponseDTO createSubject(long userId,SubjectRequestDTO dto) {
-		Subject subject=new Subject();
-		User user=userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found"));
-		 if (subjectRepository.existsByUserIdAndSubjectName(userId, dto.getSubjectName())) {
-		        throw new BadRequestException( "Subject already exists");
-		    }
-		subject.setSubjectName(dto.getSubjectName());
-		subject.setSubjectPriority(dto.getSubjectPriority());
-		subject.setSubjectTag(dto.getSubjectTag());
-		subject.setUser(user);
-		Subject savedSubject=subjectRepository.save(subject);
-		logger.info("Subject created for user{}",userId);
-		return convertToResponseDTO(savedSubject);
-	}
-	public SubjectResponseDTO updateSubject(long subjectId,SubjectRequestDTO dto) {
-		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
-		subject.setSubjectName(dto.getSubjectName());
-		subject.setSubjectPriority(dto.getSubjectPriority());
-		subject.setSubjectTag(dto.getSubjectTag());
-		Subject savedSubject=subjectRepository.save(subject);
-		logger.info("Subject {} updated", subjectId);
-		return convertToResponseDTO(savedSubject);
-		
-		
-	}
-	public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Long userId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<Subject> subjects=subjectRepository.findByUserId(userId,pageable);
-		List<SubjectResponseDTO> dtos=subjects.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(subjects,dtos);
-	}
-	public void deleteSubject(long subjectId) {
-		
-		    Subject subject = subjectRepository.findById(subjectId)
-		        .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-		    subjectRepository.delete(subject);
-		    logger.info("Subject {} deleted", subjectId);
-		
-	}
-	public PaginationResponseDTO<SubjectResponseDTO> searchSubjects(String keyword, Pageable pageable) {
-		pageable=validatePageable(pageable);
-	    Page<Subject> subjectPage ;
-	    if(keyword==null||keyword.isBlank()) {
-	    	subjectPage=subjectRepository.findAll(pageable);
-	    }
-	    else
-	    subjectPage=subjectRepository.findByNameAndContainingIgnoreCase(keyword, pageable);
+    private final Logger logger = LoggerFactory.getLogger(SubjectService.class);
+    private final SubjectRepository subjectRepository;
+    private final CurrentUserService currentUserService;
 
-	    List<SubjectResponseDTO> dtos = subjectPage.getContent().stream().map(this::convertToResponseDTO).toList();
+    public SubjectService(SubjectRepository subjectRepository, UserRepository userRepository,
+            CurrentUserService currentUserService) {
+        this.subjectRepository = subjectRepository;
+        this.currentUserService = currentUserService;
+    }
 
-	    return  PaginationResponseDTO.fromPage(subjectPage,dtos);
-	}
-	
-	private Pageable validatePageable(Pageable pageable) {
-	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
-	        return PageRequest.of(
-	            pageable.getPageNumber(),
-	            PaginationConfig.getMaxSize(),
-	            pageable.getSort()
-	        );
-	    }
-	    return pageable;
-	}
+    public SubjectResponseDTO createSubject(SubjectRequestDTO dto) {
+        User user = currentUserService.getCurrentUser();
+        long userId = user.getId();
 
-	public SubjectResponseDTO convertToResponseDTO(Subject subject) {
-		 return new SubjectResponseDTO(
-			        subject.getId(),
-			        subject.getSubjectName(),
-			        subject.getSubjectPriority(),
-			        subject.getSubjectTag()
-			    );
-	}
+        if (subjectRepository.existsByUserIdAndSubjectName(userId, dto.getSubjectName())) {
+            throw new BadRequestException("Subject already exists");
+        }
+
+        Subject subject = new Subject();
+        subject.setSubjectName(dto.getSubjectName());
+        subject.setSubjectPriority(dto.getSubjectPriority());
+        subject.setSubjectTag(dto.getSubjectTag());
+        subject.setUser(user);
+
+        Subject savedSubject = subjectRepository.save(subject);
+        logger.info("Subject created for user {}", userId);
+        return convertToResponseDTO(savedSubject);
+    }
+
+    public SubjectResponseDTO updateSubject(long subjectId, SubjectRequestDTO dto) {
+        long currentUserId = currentUserService.getCurrentUserId();
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        if (subject.getUser().getId() != currentUserId) {
+            throw new BadRequestException("You do not have permission to update this subject");
+        }
+
+        subject.setSubjectName(dto.getSubjectName());
+        subject.setSubjectPriority(dto.getSubjectPriority());
+        subject.setSubjectTag(dto.getSubjectTag());
+
+        Subject savedSubject = subjectRepository.save(subject);
+        logger.info("Subject {} updated", subjectId);
+        return convertToResponseDTO(savedSubject);
+    }
+
+    public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
+        long userId = currentUserService.getCurrentUserId();
+        pageable = validatePageable(pageable);
+        Page<Subject> subjects = subjectRepository.findByUserId(userId, pageable);
+        List<SubjectResponseDTO> dtos = subjects.getContent().stream().map(this::convertToResponseDTO).toList();
+        return PaginationResponseDTO.fromPage(subjects, dtos);
+    }
+
+    public void deleteSubject(long subjectId) {
+        long currentUserId = currentUserService.getCurrentUserId();
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        if (subject.getUser().getId() != currentUserId) {
+            throw new BadRequestException("You do not have permission to delete this subject");
+        }
+
+        subjectRepository.delete(subject);
+        logger.info("Subject {} deleted", subjectId);
+    }
+
+    public PaginationResponseDTO<SubjectResponseDTO> searchSubjects(String keyword, Pageable pageable) {
+        long userId = currentUserService.getCurrentUserId();
+        pageable = validatePageable(pageable);
+
+        Page<Subject> subjectPage;
+        if (keyword == null || keyword.isBlank()) {
+            subjectPage = subjectRepository.findByUserId(userId, pageable);
+        } else {
+            subjectPage = subjectRepository.findByUserIdAndSubjectNameContainingIgnoreCase(userId, keyword, pageable);
+        }
+
+        List<SubjectResponseDTO> dtos = subjectPage.getContent().stream().map(this::convertToResponseDTO).toList();
+        return PaginationResponseDTO.fromPage(subjectPage, dtos);
+    }
+
+    private Pageable validatePageable(Pageable pageable) {
+        if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
+            return PageRequest.of(
+                    pageable.getPageNumber(),
+                    PaginationConfig.getMaxSize(),
+                    pageable.getSort());
+        }
+        return pageable;
+    }
+
+    public SubjectResponseDTO convertToResponseDTO(Subject subject) {
+        return new SubjectResponseDTO(
+                subject.getId(),
+                subject.getSubjectName(),
+                subject.getSubjectPriority(),
+                subject.getSubjectTag());
+    }
 }

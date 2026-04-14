@@ -51,4 +51,16 @@ public class LectureSpecification {
 				return cb.lessThanOrEqualTo(root.get("uploadDate"),toDate);
 		};
 	}
+	public static Specification<Lecture> belongsToUser(Long userId) {
+	    return (root, query, cb) -> {
+	        if (userId == null) {
+	            return cb.conjunction();
+	        }
+
+	        return cb.equal(
+	            root.get("subject").get("user").get("id"),
+	            userId
+	        );
+	    };
+	}
 }

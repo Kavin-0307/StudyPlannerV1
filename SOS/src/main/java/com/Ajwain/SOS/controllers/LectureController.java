@@ -63,7 +63,6 @@ public class LectureController {
     public ResponseEntity<PaginationResponseDTO<LectureResponseDTO>> getLectures(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long subjectId,
-            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Boolean processed,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,

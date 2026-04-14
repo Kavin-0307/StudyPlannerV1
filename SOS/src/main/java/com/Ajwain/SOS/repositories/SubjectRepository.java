@@ -10,10 +10,13 @@ import org.springframework.stereotype.Repository;
 import com.Ajwain.SOS.entities.Subject;
 
 @Repository
-public interface SubjectRepository extends JpaRepository<Subject,Long>{
+public interface SubjectRepository extends JpaRepository<Subject, Long> {
 
-	List<Subject> findByUserId(long userId);
-	boolean existsByUserIdAndSubjectName(long userId,String subjectName);
-	Page<Subject> findByUserId(Long userId, Pageable pageable);
-	Page<Subject> findByNameAndContainingIgnoreCase(String keyword,Pageable pageable);
+    List<Subject> findByUserId(long userId);
+
+    boolean existsByUserIdAndSubjectName(long userId, String subjectName);
+
+    Page<Subject> findByUserId(Long userId, Pageable pageable);
+
+    Page<Subject> findByUserIdAndSubjectNameContainingIgnoreCase(Long userId, String keyword, Pageable pageable);
 }

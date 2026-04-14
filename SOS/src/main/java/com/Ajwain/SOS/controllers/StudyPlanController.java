@@ -28,21 +28,21 @@ public class StudyPlanController {
 	public StudyPlanController(StudyPlanService studyPlanService) {
 		this.studyPlanService=studyPlanService;
 	}
-	@PostMapping("/generate/{userId}")
-	public ResponseEntity<List<StudyPlanResponseDTO>> generateStudyPlan(@PathVariable Long userId){
-		return ResponseEntity.status(HttpStatus.CREATED).body(studyPlanService.generateStudyPlan(userId));
+	@PostMapping("/generate")
+	public ResponseEntity<List<StudyPlanResponseDTO>> generateStudyPlan(){
+		return ResponseEntity.status(HttpStatus.CREATED).body(studyPlanService.generateStudyPlan());
 	}
-	@GetMapping("/today/{userId}")
-	public ResponseEntity<List<StudyPlanResponseDTO>> getTodayPlan(@PathVariable Long userId){
-		return ResponseEntity.ok(studyPlanService.getTodayPlan(userId));
+	@GetMapping("/today")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getTodayPlan(){
+		return ResponseEntity.ok(studyPlanService.getTodayPlan());
 	}
-	@GetMapping("/user/{userId}")
-	public ResponseEntity<List<StudyPlanResponseDTO>> getFullPlan(@PathVariable long userId){
-		return ResponseEntity.ok(studyPlanService.getStudyPlanByUser(userId));
+	@GetMapping("/user")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getFullPlan(){
+		return ResponseEntity.ok(studyPlanService.getStudyPlanByUser());
 	}
-	@GetMapping("/user/{userId}/range")
-	public ResponseEntity<List<StudyPlanResponseDTO>> getPlanByDateAndRange(@PathVariable long userId,@RequestParam LocalDate start,@RequestParam LocalDate end){
-		return ResponseEntity.ok(studyPlanService.getPlanByDateRange(userId, start, end));
+	@GetMapping("/range")
+	public ResponseEntity<List<StudyPlanResponseDTO>> getPlanByDateAndRange(@RequestParam LocalDate start,@RequestParam LocalDate end){
+		return ResponseEntity.ok(studyPlanService.getPlanByDateRange( start, end));
 	}
 	@PatchMapping("/{planId}/status")
 	public ResponseEntity<StudyPlanResponseDTO> updateStatus(
@@ -56,13 +56,12 @@ public class StudyPlanController {
 	        )
 	    );
 	}
-	@GetMapping("/user/{userId}/progress")
-	public ResponseEntity<Map<String, Long>> getProgress(@PathVariable Long userId){
-	    return ResponseEntity.ok(studyPlanService.getProgress(userId));
+	@GetMapping("/user/progress")
+	public ResponseEntity<Map<String, Long>> getProgress(){
+	    return ResponseEntity.ok(studyPlanService.getProgress());
 	}
 	@GetMapping
 	public ResponseEntity<PaginationResponseDTO<StudyPlanResponseDTO>> getStudyPlans(
-	        @RequestParam(required = false) Long userId,
 	        @RequestParam(required = false) Long subjectId,
 	        @RequestParam(required = false) StudyStatus status,
 	        @RequestParam(required = false) LocalDate fromDate,
@@ -72,7 +71,6 @@ public class StudyPlanController {
 	        Pageable pageable){
 
 	    StudyPlanSearchCriteria criteria = new StudyPlanSearchCriteria();
-	    criteria.setUserId(userId);
 	    criteria.setSubjectId(subjectId);
 	    criteria.setStatus(status);
 	    criteria.setFromDate(fromDate);

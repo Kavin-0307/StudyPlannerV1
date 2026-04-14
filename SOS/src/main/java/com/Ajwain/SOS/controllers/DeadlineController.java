@@ -27,16 +27,39 @@ public class DeadlineController {
     }
 
     // ================= CREATE =================
-    @PostMapping("/{subjectId}")
-    public ResponseEntity<DeadlineResponseDTO> createDeadline(
-            @PathVariable Long subjectId,
-            @RequestBody @Valid DeadlineRequestDTO dto) {
+    @PostMapping
+    public ResponseEntity<DeadlineResponseDTO> createDeadline(@RequestParam Long subjectId,@RequestBody @Valid DeadlineRequestDTO dto) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(deadlineService.createDeadline(subjectId, dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(deadlineService.createDeadline(subjectId, dto));
     }
+    //===================ALL=====================
+    @GetMapping("/all")
+    public ResponseEntity<PaginationResponseDTO<DeadlineResponseDTO>> getAllDeadlines(Pageable pageable) {
+        return ResponseEntity.ok(deadlineService.getDeadlinesByUser(pageable));
+    }
+    // ================= OVERDUE =================
+    @GetMapping("/overdue")
+    public ResponseEntity<PaginationResponseDTO<DeadlineResponseDTO>> getOverdueDeadlines(Pageable pageable) {
+        return ResponseEntity.ok(
+                deadlineService.getOverdueDeadlines(pageable)
+        );
+    }
+    // ================= UPCOMING =================
+    @GetMapping("/upcoming")
+    public ResponseEntity<PaginationResponseDTO<DeadlineResponseDTO>> getUpcomingDeadlines(Pageable pageable) {
+        return ResponseEntity.ok(
+                deadlineService.getUpcomingDeadline(pageable)
+        );
+    }
+    @GetMapping("/subject/{subjectId}")
+    public ResponseEntity<PaginationResponseDTO<DeadlineResponseDTO>> getDeadlinesBySubject(
+            @PathVariable Long subjectId,
+            Pageable pageable) {
 
+        return ResponseEntity.ok(
+                deadlineService.getDeadlinesBySubject(subjectId, pageable)
+        );
+    }
     // ================= UPDATE =================
     @PutMapping("/{deadlineId}")
     public ResponseEntity<DeadlineResponseDTO> updateDeadline(

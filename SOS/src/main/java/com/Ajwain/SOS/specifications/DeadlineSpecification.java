@@ -25,6 +25,10 @@ public class DeadlineSpecification {
 				 return cb.conjunction();
 		};
 	}
+	  public static Specification<Deadline> belongsToUser(long userId) {
+	        return (root, query, cb) ->
+	                cb.equal(root.get("subject").get("user").get("id"), userId);
+	    }
 
 	public static Specification<Deadline> deadlineAfter(LocalDateTime localDateTime){
 		return (root,query,cb)->{

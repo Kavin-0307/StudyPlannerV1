@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.Ajwain.SOS.auth.CurrentUserService;
 import com.Ajwain.SOS.config.PaginationConfig;
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
@@ -22,6 +23,7 @@ import com.Ajwain.SOS.dto.LectureSearchCriteria;
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.LectureRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
@@ -34,10 +36,12 @@ public class LectureService {
 	private final SubjectRepository subjectRepository;
 	private final AIOutputService aiOutputService;
 	private final FileStorageService fileStorageService;
+	private final  CurrentUserService currentUserService;
 	private final Logger logger=LoggerFactory.getLogger(LectureService.class);
 	private final RevisionService revisionService;
-	public LectureService(RevisionService revisionService,AIOutputService aiOutputService,LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService)
+	public LectureService(RevisionService revisionService,AIOutputService aiOutputService,LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService, CurrentUserService currentUserService)
 	{
+		this.currentUserService = currentUserService;
 		this.revisionService=revisionService;
 		this.aiOutputService=aiOutputService;
 		this.fileStorageService=fileStorageService;
@@ -46,7 +50,12 @@ public class LectureService {
 	}	
 	// ============== CREATE LECTURE ==============
 	public LectureResponseDTO createLecture(MultipartFile file,Long subjectId,LectureRequestDTO dto) {
+		User user=currentUserService.getCurrentUser();
 		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
+		if (subject.getUser().getId()!=(user.getId())) {
+            throw new ResourceNotFoundException("Unauthorized");
+        }
+
 		Lecture lecture=new Lecture();
 		lecture.setSubject(subject);
 		Path path;
@@ -60,15 +69,19 @@ public class LectureService {
 		lecture.setFilePath(path.toString());
 		lecture.setUploadDate(LocalDate.now());
 		Lecture savedLecture=lectureRepository.save(lecture);
-		logger.info("Lecture uploaded for subject {}", subjectId);
+		logger.info("Lecture uploaded for subject {}", user.getUserEmail());
 
 		return convertToResponseDTO(savedLecture);
 	}
 	
 	// ============== PROCESSING THE LECTURE ==============
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
+		User user=currentUserService.getCurrentUser();
 
 	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
+	    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
+            throw new ResourceNotFoundException("Unauthorized");
+        }
 	    try {
 	    lecture.setFilePath(fileStorageService.moveToProcessed(Paths.get(lecture.getFilePath())).toString());
 	    }catch(IOException e) {
@@ -82,6 +95,11 @@ public class LectureService {
 	}
 	public LectureResponseDTO processLecture(long lectureId) {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
+		User user = currentUserService.getCurrentUser();
+
+		if (lecture.getSubject().getUser().getId()!=(user.getId())) {
+		    throw new ResourceNotFoundException("Unauthorized");
+		}
 		String filePath=lecture.getFilePath();
 		String extractedText="";
 		try {
@@ -98,9 +116,12 @@ public class LectureService {
 	}
 	// ============== DELETE ==============
 	public void deleteLecture(long lectureId) {
-			
-		    Lecture lecture= lectureRepository.findById(lectureId)
-		        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+			User user=currentUserService.getCurrentUser();
+
+		    Lecture lecture= lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+		    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
+	            throw new ResourceNotFoundException("Unauthorized");
+	        }
 		    fileStorageService.deleteFile(lecture.getFilePath());
 			   
 		    lectureRepository.delete(lecture);
@@ -110,39 +131,59 @@ public class LectureService {
 	}
 	// ============== SINGLE FETCH ==============
 	public LectureResponseDTO getLectureById(Long lectureId) {
-	    Lecture lecture = lectureRepository.findById(lectureId)
-	        .orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"
-	        ));
+		User user=currentUserService.getCurrentUser();
 
+	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
+	    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
+            throw new ResourceNotFoundException("Unauthorized");
+	    }
 	    return convertToResponseDTO(lecture);
 	}
 	// ============== BASIC LISTS ==============
 	public List<LectureResponseDTO> getLecturesBySubject(long subjectId){
+		User user=currentUserService.getCurrentUser();
+		Subject subject = subjectRepository.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        if (subject.getUser().getId()!=(user.getId())) {
+            throw new ResourceNotFoundException("Unauthorized");
+        }
 		return lectureRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
 	}
 	public List<LectureResponseDTO> getProcessedLectures(Long subjectId) {
+	    User user = currentUserService.getCurrentUser();
 
-	    return lectureRepository.findBySubjectIdAndProcessedTrue(subjectId).stream().map(this::convertToResponseDTO).toList();
-	}
-	public List<LectureResponseDTO> getPendingLecturesByUser(Long userId) {
+	    Subject subject = subjectRepository.findById(subjectId)
+	        .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+	    if (subject.getUser().getId()!=(user.getId())) { 
+	        throw new ResourceNotFoundException("Unauthorized");
+	    }
+
+	    return lectureRepository
+	            .findBySubjectIdAndProcessedTrue(subjectId)
+	            .stream()
+	            .map(this::convertToResponseDTO)
+	            .toList();
+	}	public List<LectureResponseDTO> getPendingLecturesByUser(Long userId) {
 	    return lectureRepository.findPendingLecturesByUserId(userId).stream().map(this::convertToResponseDTO)
 	            .toList();
 	}
 	
 	// ============== PAGINATION ==============
-	public PaginationResponseDTO<LectureResponseDTO> getLecturesBySubject(long subjectId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<Lecture> lectures=lectureRepository.findBySubjectId(subjectId, pageable);
-		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
-		return  PaginationResponseDTO.fromPage(lectures, dtos);
-	}
+	public PaginationResponseDTO<LectureResponseDTO> getLecturesBySubject(
+            long subjectId, Pageable pageable) {
+		User user = currentUserService.getCurrentUser();
+        Subject subject = subjectRepository.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        if (subject.getUser().getId()!=(user.getId())) {
+            throw new ResourceNotFoundException("Unauthorized");
+        }
+        pageable=validatePageable(pageable);
+        Page<Lecture> lectures = lectureRepository.findBySubject(subject, pageable);
+        List<LectureResponseDTO> dtos =lectures.getContent().stream().map(this::convertToResponseDTO).toList();
+
+        return PaginationResponseDTO.fromPage(lectures, dtos);
+    }
 	
-	public PaginationResponseDTO<LectureResponseDTO> getLecturesByUser(Long userId,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<Lecture> lectures=lectureRepository.findBySubjectUserId(userId,pageable);
-		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(lectures, dtos);
-	}	
 	
 	public PaginationResponseDTO<LectureResponseDTO> getProcessedLectures(Pageable pageable){
 		pageable=validatePageable(pageable);
@@ -153,7 +194,10 @@ public class LectureService {
 	
 	public PaginationResponseDTO<LectureResponseDTO> getUnprocessedLectures(Pageable pageable){
 		pageable=validatePageable(pageable);
-		Page<Lecture> lectures=lectureRepository.findByProcessed(false, pageable);
+		User user = currentUserService.getCurrentUser();
+
+		Page<Lecture> lectures =
+		    lectureRepository.findBySubjectUserAndProcessed(user, true, pageable);
 		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(lectures,dtos);
 	}
@@ -161,7 +205,9 @@ public class LectureService {
 	
 	public PaginationResponseDTO<LectureResponseDTO> getLectures(LectureSearchCriteria criteria,Pageable pageable){
 		pageable=validatePageable(pageable);
-		Specification<Lecture> s=buildSpecification(criteria);
+		User user = currentUserService.getCurrentUser();
+
+		Specification<Lecture> s =buildSpecification(criteria).and(LectureSpecification.belongsToUser(user.getId()));
 		Page<Lecture> lecture=lectureRepository.findAll(s,pageable);
 		List<LectureResponseDTO> dtos=lecture.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(lecture, dtos);	

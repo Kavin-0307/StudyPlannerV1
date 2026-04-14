@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.SubjectRequestDTO;
 import com.Ajwain.SOS.dto.SubjectResponseDTO;
@@ -23,37 +22,38 @@ public class SubjectController {
         this.subjectService = subjectService;
     }
 
-    // CREATE
-    @PostMapping("/{userId}")
+    // CREATE — userId now comes from the JWT, not the URL
+    @PostMapping
     public ResponseEntity<SubjectResponseDTO> createSubject(
-            @PathVariable Long userId,
-            @Valid @RequestBody SubjectRequestDTO dto){
+            @Valid @RequestBody SubjectRequestDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(subjectService.createSubject(userId, dto));
+                .body(subjectService.createSubject(dto));
     }
-
-    
 
     // UPDATE
     @PutMapping("/{subjectId}")
     public ResponseEntity<SubjectResponseDTO> updateSubject(
             @PathVariable Long subjectId,
-            @Valid @RequestBody SubjectRequestDTO dto){
+            @Valid @RequestBody SubjectRequestDTO dto) {
 
         return ResponseEntity.ok(subjectService.updateSubject(subjectId, dto));
     }
+
+    // GET — userId now comes from the JWT, not a query param
     @GetMapping
-    public PaginationResponseDTO<SubjectResponseDTO> getSubjects(@RequestParam long userId,Pageable pageable){
-    	
-    	return subjectService.getSubjects(userId,pageable);
+    public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
+        return subjectService.getSubjects(pageable);
     }
+
     // DELETE
     @DeleteMapping("/{subjectId}")
-    public ResponseEntity<Void> deleteSubject(@PathVariable Long subjectId){
+    public ResponseEntity<Void> deleteSubject(@PathVariable Long subjectId) {
         subjectService.deleteSubject(subjectId);
         return ResponseEntity.noContent().build();
     }
+
+    // SEARCH — scoped to the current user
     @GetMapping("/search")
     public ResponseEntity<PaginationResponseDTO<SubjectResponseDTO>> searchSubjects(
             @RequestParam String keyword,

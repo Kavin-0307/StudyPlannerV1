@@ -2,6 +2,7 @@ package com.Ajwain.SOS.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,11 +13,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.Ajwain.SOS.entities.Deadline;
+import com.Ajwain.SOS.entities.Subject;
+import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.entities.enums.DeadlineType;
 
 @Repository
 public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpecificationExecutor<Deadline>{
-	List<Deadline> findBySubjectUserId(long userId);
+	List<Deadline> findBySubjectUser(User user);
+	Page<Deadline> findBySubjectUser(User user, Pageable pageable);
 	List<Deadline> findBySubjectId(Long subjectId);
 	List<Deadline> findBySubjectUserIdAndDeadlineDateAfterOrderByDeadlineDateAsc(long userId,LocalDateTime now);
 	
@@ -28,7 +32,7 @@ public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpec
 		    AND d.deadlineDate > CURRENT_TIMESTAMP
 		    ORDER BY d.deadlineDate ASC, s.subjectPriority ASC
 		""")
-		List<Deadline> findUpcomingDeadlinesWithPriority(@Param("userId") Long userId);
+		List<Deadline> findUpcomingDeadlinesWithPriority(User user);
 	Page<Deadline> findBySubjectId(long subjectId,Pageable pageable);
 	Page<Deadline> findBySubjectUserId(Long userId,Pageable pageable);
 
@@ -37,6 +41,8 @@ public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpec
 	Page<Deadline> findBySubjectIdAndType(long subjectIdj,DeadlineType type,Pageable pageable);
 	
 	Page<Deadline> findByDeadlineDateBefore(LocalDateTime dateId,Pageable pageable);
+	List<Deadline> findBySubject(User user,Subject subject);
+	List<Deadline> findBySubjectUserAndDeadlineDateAfterOrderByDeadlineDateAsc(User user, LocalDateTime now);
 }
 /*The query does these things in order:
  * it fetches the deadline and uses join subject for filtering and sorting. 
