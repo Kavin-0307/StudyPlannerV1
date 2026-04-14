@@ -11,12 +11,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.Ajwain.SOS.config.PaginationConfig;
-import com.Ajwain.SOS.dto.DeadlineResponseDTO;
-import com.Ajwain.SOS.dto.DeadlineSearchCriteria;
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.dto.RevisionResponseDTO;
 import com.Ajwain.SOS.dto.RevisionSearchCriteria;
-import com.Ajwain.SOS.entities.Deadline;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Revision;
 import com.Ajwain.SOS.entities.enums.RevisionStatus;

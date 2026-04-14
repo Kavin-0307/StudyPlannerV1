@@ -2,7 +2,6 @@ package com.Ajwain.SOS.specifications;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.Ajwain.SOS.entities.Deadline;

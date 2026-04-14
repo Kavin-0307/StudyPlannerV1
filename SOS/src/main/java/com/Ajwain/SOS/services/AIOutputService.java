@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.Ajwain.SOS.dto.AIRequestDTO;
 import com.Ajwain.SOS.dto.AIResponseDTO;

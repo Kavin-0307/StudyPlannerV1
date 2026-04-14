@@ -9,4 +9,6 @@ import com.Ajwain.SOS.entities.User;
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
 	Optional<User> findByUserEmail(String email);
+
+	Optional<User> findByUserName(String name);
 }

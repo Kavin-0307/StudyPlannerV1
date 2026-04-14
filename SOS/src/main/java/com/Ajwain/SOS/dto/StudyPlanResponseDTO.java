@@ -1,7 +1,6 @@
 package com.Ajwain.SOS.dto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalDate;	
 
 import com.Ajwain.SOS.entities.enums.StudyStatus;
 

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Revision;
 import com.Ajwain.SOS.entities.enums.RevisionStatus;
 
