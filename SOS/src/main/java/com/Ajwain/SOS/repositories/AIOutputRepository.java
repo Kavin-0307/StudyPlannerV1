@@ -11,5 +11,5 @@ import com.Ajwain.SOS.entities.enums.OutputType;
 public interface AIOutputRepository extends JpaRepository<AI_Output,Long>{
 	List<AI_Output> findByLectureId(long lectureId);
 
-	AI_Output findByLectureIdAndOutputType(Long lectureId, OutputType type);
+	AI_Output findByLectureIdAndAiOutputType(Long lectureId, OutputType type);
 }

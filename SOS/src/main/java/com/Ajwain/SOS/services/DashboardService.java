@@ -25,20 +25,20 @@ public class DashboardService {
     }
 
     public DashboardResponseDTO getDashboard(Long userId) {
-        List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan(userId);
+        List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan();
         
         List<DeadlineResponseDTO> upcomingDeadlines =deadlineService.getUpcomingDeadlines();
         
-        List<LectureResponseDTO> pendingLectures=lectureService.getPendingLecturesByUser(userId);
-        Long completedLectures=analyticsService.getCompletedLectures(userId);
+        List<LectureResponseDTO> pendingLectures=lectureService.getPendingLecturesByUser();
+        Long completedLectures=analyticsService.getCompletedLectures();
 
-        Long pendingLecturesCount=analyticsService.getPendingLectures(userId);
+        Long pendingLecturesCount=analyticsService.getPendingLectures();
 
-        Long progress=analyticsService.getStudyProgressPercentage(userId);
+        Long progress=analyticsService.getStudyProgressPercentage();
 
-        Long studyHoursWeek=analyticsService.getStudyHoursThisWeek(userId);
+        Long studyHoursWeek=analyticsService.getStudyHoursThisWeek();
 
-        Long totalSessions=analyticsService.getTotalStudySessions(userId);
+        Long totalSessions=analyticsService.getTotalStudySessions();
 
         Long completedSessions=analyticsService.getCompletedStudySessions(userId);
 

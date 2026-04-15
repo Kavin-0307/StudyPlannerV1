@@ -94,7 +94,7 @@ public class RevisionService {
 	
 	public PaginationResponseDTO<RevisionResponseDTO> getCompletedRevisions(Pageable pageable){
 		pageable = validatePageable(pageable);
-        User user = currentUserService.getCurrentUser(); // ✅ FIX
+        User user = currentUserService.getCurrentUser(); 
 
 		Page<Revision> revision=revisionRepository.findByLectureSubjectUserAndStatus(user,RevisionStatus.COMPLETED, pageable);
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
@@ -103,7 +103,7 @@ public class RevisionService {
 	
 	
 	public PaginationResponseDTO<RevisionResponseDTO> getPendingRevisions(Pageable pageable){
-        User user = currentUserService.getCurrentUser(); // ✅ FIX
+        User user = currentUserService.getCurrentUser(); 
 
 		pageable = validatePageable(pageable);
 		Page<Revision> revision=revisionRepository.findByLectureSubjectUserAndStatus(user,RevisionStatus.PENDING, pageable);
@@ -112,7 +112,7 @@ public class RevisionService {
 	}
 	public PaginationResponseDTO<RevisionResponseDTO> getRevisions(RevisionSearchCriteria criteria,Pageable pageable){
 		pageable=validatePageable(pageable);
-        User user = currentUserService.getCurrentUser(); // ✅ FIX
+        User user = currentUserService.getCurrentUser(); 
 
 		Specification<Revision> s=buildSpecification(criteria).and(RevisionSpecification.hasUser(user.getId()));
 		Page<Revision> revision=revisionRepository.findAll(s,pageable);

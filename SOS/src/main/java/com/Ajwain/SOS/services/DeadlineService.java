@@ -63,13 +63,13 @@ public class DeadlineService {
 		deadline.setDeadlineType(dto.getDeadlineType());
 		deadline.setSubject(subject);
 		Deadline savedDeadline=deadlineRepository.save(deadline);
-		studyPlanService.regenerateStudyPlan(user.getId());
+		studyPlanService.regenerateStudyPlan();
 		logger.info("Creating deadline for subject {}", subjectId);
 		return convertToResponseDTO(savedDeadline);
 	}
 	public List<DeadlineResponseDTO> getDeadlinesByUser(){
 	    User user = currentUserService.getCurrentUser();
-	    return deadlineRepository.findBySubjectUser(user)
+	    return deadlineRepository.findBySubject_User(user)
 	            .stream().map(this::convertToResponseDTO).toList();
 	}
 	public List<DeadlineResponseDTO> getDeadlinesBySubject(long subjectId){
@@ -82,7 +82,7 @@ public class DeadlineService {
 	        throw new BadRequestException("Unauthorized access");
 	    }
 
-	    return deadlineRepository.findBySubject(user, subject)
+	    return deadlineRepository.findBySubject_UserAndSubject(user, subject)
 	            .stream()
 	            .map(this::convertToResponseDTO)
 	            .toList();
@@ -103,7 +103,7 @@ public class DeadlineService {
 		deadline.setDeadlineType(dto.getDeadlineType());
 		
 		Deadline savedDeadline=deadlineRepository.save(deadline);
-		studyPlanService.regenerateStudyPlan(user.getId());
+		studyPlanService.regenerateStudyPlan();
 		logger.info("Updating deadline {}", deadlineID);
 		return convertToResponseDTO(savedDeadline);
 	}
@@ -117,7 +117,7 @@ public class DeadlineService {
 	        throw new BadRequestException("Unauthorized");
 	    }
 	    deadlineRepository.delete(deadline);
-	    studyPlanService.regenerateStudyPlan(user.getId());
+	    studyPlanService.regenerateStudyPlan();
 	    logger.info("Deleting deadline {}", deadlineId);
 	}
 	public List<DeadlineResponseDTO> getUpcomingDeadlines() {
@@ -143,7 +143,7 @@ public class DeadlineService {
 
 		User user = currentUserService.getCurrentUser();
 
-		Page<Deadline> deadline = deadlineRepository.findBySubjectUser(user, pageable);
+		Page<Deadline> deadline = deadlineRepository.findBySubject_User(user, pageable);
 		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(deadline,dtos);
 	}
@@ -162,7 +162,7 @@ public class DeadlineService {
 	}
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesByType(DeadlineType type,Pageable pageable){
 		pageable=validatePageable(pageable);
-		Page<Deadline> deadline=deadlineRepository.findByType(type,pageable);
+		Page<Deadline> deadline=deadlineRepository.findByDeadlineType(type,pageable);
 		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(deadline,dtos);
 	}

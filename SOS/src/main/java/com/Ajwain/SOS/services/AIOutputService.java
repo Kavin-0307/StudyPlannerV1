@@ -59,6 +59,6 @@ public class AIOutputService {
 
     // Retrieve specific output type
     public AI_Output getOutputByType(Long lectureId, OutputType type) {
-        return aiOutputRepository.findByLectureIdAndOutputType(lectureId, type);
+        return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
     }
 }

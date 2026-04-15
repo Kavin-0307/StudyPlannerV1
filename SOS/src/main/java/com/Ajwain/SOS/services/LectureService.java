@@ -164,9 +164,13 @@ public class LectureService {
 	            .stream()
 	            .map(this::convertToResponseDTO)
 	            .toList();
-	}	public List<LectureResponseDTO> getPendingLecturesByUser(Long userId) {
-	    return lectureRepository.findPendingLecturesByUserId(userId).stream().map(this::convertToResponseDTO)
-	            .toList();
+	}	public List<LectureResponseDTO> getPendingLecturesByUser() {
+
+        User user=currentUserService.getCurrentUser();
+        return lectureRepository.findBySubject_UserAndProcessedFalse(user)
+                .stream()
+                .map(this::convertToResponseDTO)
+                .toList();
 	}
 	
 	// ============== PAGINATION ==============
@@ -187,7 +191,8 @@ public class LectureService {
 	
 	public PaginationResponseDTO<LectureResponseDTO> getProcessedLectures(Pageable pageable){
 		pageable=validatePageable(pageable);
-		Page<Lecture> lectures=lectureRepository.findByProcessed(true, pageable);
+		User user=currentUserService.getCurrentUser();
+		Page<Lecture> lectures=lectureRepository.findBySubject_UserAndProcessed(user,true, pageable);
 		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(lectures,dtos);
 	}	
@@ -196,8 +201,7 @@ public class LectureService {
 		pageable=validatePageable(pageable);
 		User user = currentUserService.getCurrentUser();
 
-		Page<Lecture> lectures =
-		    lectureRepository.findBySubjectUserAndProcessed(user, true, pageable);
+		Page<Lecture> lectures =lectureRepository.findBySubject_UserAndProcessed(user, false, pageable);
 		List<LectureResponseDTO> dtos=lectures.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(lectures,dtos);
 	}

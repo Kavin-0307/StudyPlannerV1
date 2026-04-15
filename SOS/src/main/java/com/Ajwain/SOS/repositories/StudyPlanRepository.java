@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.Ajwain.SOS.entities.StudyPlan;
+import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.entities.enums.StudyStatus;
 
 @Repository
@@ -52,15 +53,17 @@ public interface StudyPlanRepository extends JpaRepository<StudyPlan,Long>, JpaS
 			    @Param("start") LocalDate start,
 			    @Param("end") LocalDate end
 			);
-	Long countByUserId(long userId);
-	Long countByUserIdAndStatus(Long userId,StudyStatus status);
-	@Query("""
-			SELECT COALESCE(SUM(sp.plannedHours), 0)
-			FROM StudyPlan sp
-			WHERE sp.user.id = :userId
-			AND sp.studyDate BETWEEN :start AND :end
-			""")
-	Long sumStudyHoursBetweenDates(Long userId, LocalDate start, LocalDate end);Page<StudyPlan> findByUserId(Long userId, Pageable pageable);
+	Long countByUser(User user);
+	Long countByUserAndStatus(User user,StudyStatus status);
+	@Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudyPlan s " +
+		       "WHERE s.user = :user " +
+		       "AND s.studyDate BETWEEN :startDate AND :endDate")
+		Long sumStudyHoursBetweenDates(
+		        @Param("user") User user,
+		        @Param("startDate") LocalDate startDate,
+		        @Param("endDate") LocalDate endDate
+		);
+	Page<StudyPlan> findByUserId(Long userId, Pageable pageable);
 
 Page<StudyPlan> findByUserIdAndStudyDate(Long userId, LocalDate date, Pageable pageable);
 

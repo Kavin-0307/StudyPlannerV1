@@ -19,8 +19,8 @@ import com.Ajwain.SOS.entities.enums.DeadlineType;
 
 @Repository
 public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpecificationExecutor<Deadline>{
-	List<Deadline> findBySubjectUser(User user);
-	Page<Deadline> findBySubjectUser(User user, Pageable pageable);
+	List<Deadline> findBySubject_User(User user);
+	Page<Deadline> findBySubject_User(User user, Pageable pageable);
 	List<Deadline> findBySubjectId(Long subjectId);
 	List<Deadline> findBySubjectUserIdAndDeadlineDateAfterOrderByDeadlineDateAsc(long userId,LocalDateTime now);
 	
@@ -28,20 +28,20 @@ public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpec
 		    SELECT d FROM Deadline d
 		    JOIN FETCH d.subject s
 		    JOIN FETCH s.user
-		    WHERE s.user.id = :userId
+		    WHERE s.user= :user
 		    AND d.deadlineDate > CURRENT_TIMESTAMP
 		    ORDER BY d.deadlineDate ASC, s.subjectPriority ASC
 		""")
-		List<Deadline> findUpcomingDeadlinesWithPriority(User user);
+		List<Deadline> findUpcomingDeadlinesWithPriority(@Param("user")User user);
 	Page<Deadline> findBySubjectId(long subjectId,Pageable pageable);
 	Page<Deadline> findBySubjectUserId(Long userId,Pageable pageable);
 
 	Page<Deadline> findByDeadlineDateAfter(LocalDateTime date,Pageable pageable);
-	Page<Deadline> findByType(DeadlineType type,Pageable pageable);
-	Page<Deadline> findBySubjectIdAndType(long subjectIdj,DeadlineType type,Pageable pageable);
+	Page<Deadline> findByDeadlineType(DeadlineType type,Pageable pageable);
+	Page<Deadline> findBySubjectIdAndDeadlineType(long subjectIdj,DeadlineType type,Pageable pageable);
 	
 	Page<Deadline> findByDeadlineDateBefore(LocalDateTime dateId,Pageable pageable);
-	List<Deadline> findBySubject(User user,Subject subject);
+	List<Deadline> findBySubject_UserAndSubject(User user, Subject subject);
 	List<Deadline> findBySubjectUserAndDeadlineDateAfterOrderByDeadlineDateAsc(User user, LocalDateTime now);
 }
 /*The query does these things in order:
