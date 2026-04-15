@@ -37,6 +37,10 @@ public class AuthService {
 	}
 	public AuthResponseDTO login(LoginRequestDTO dto) {
 		String identifier=dto.getIdentifier();
+		  if (identifier == null) {
+		        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Identifier is required");
+		    }
+
 		User user;
 		if(identifier.contains("@")) {
 			user=userRepository.findByUserEmail(dto.getIdentifier()).orElseThrow(()->new ResourceNotFoundException("Invalid Credentials"));

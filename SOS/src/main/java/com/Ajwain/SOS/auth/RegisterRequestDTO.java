@@ -1,20 +1,17 @@
 package com.Ajwain.SOS.auth;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RegisterRequestDTO {
-	
-	@NotBlank
-	private String userName;
-	@NotBlank
-	@Email
-	private String userEmail;
-	@NotBlank
-	@Size(min=6)
-	private String password;
-	public String getUserEmail() {
+
+    @JsonProperty("username")
+    private String userName;
+
+    @JsonProperty("email")
+    private String userEmail;
+
+    private String password;
+    public String getUserEmail() {
 		return userEmail;
 	}
 	public void setUserEmail(String userEmail) {
@@ -32,4 +29,5 @@ public class RegisterRequestDTO {
 	public void setPassword(String password) {
 		this.password=password;
 	}
+    // getters & setters
 }
