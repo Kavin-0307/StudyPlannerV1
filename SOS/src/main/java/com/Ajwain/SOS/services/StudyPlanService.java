@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,7 @@ public class StudyPlanService {
 		this.deadlineRepository=deadlineRepository;
 	}
 	@Transactional
+	@CacheEvict(value = {"dashboard","studyplan"}, allEntries = true)
 	public List<StudyPlanResponseDTO> generateStudyPlan(){
 		 User user = currentUserService.getCurrentUser(); 
 	        long userId = user.getId();
@@ -142,6 +145,7 @@ public class StudyPlanService {
 		
 		return finalPlans.stream().map(this::convertToResponseDTO).toList();
 	}
+	@CacheEvict(value = {"dashboard","studyplan"}, allEntries = true)
 	public StudyPlanResponseDTO updateStudyStatus(Long planId, StudyStatus status) {
 
 	    StudyPlan plan = studyPlanRepository.findById(planId)
@@ -160,10 +164,18 @@ public class StudyPlanService {
 
 	    return convertToResponseDTO(plan);
 	}
+	@Cacheable(
+			  value = "studyplan",
+			  key = "#root.target.currentUserService.getCurrentUser().id"
+			)
 	public List<StudyPlanResponseDTO> getTodayPlan(){
 		User user=currentUserService.getCurrentUser();
 		return studyPlanRepository.findTodayPlanWithRelations(user.getId(), LocalDate.now()).stream().map(this::convertToResponseDTO).toList();
 	}
+	@Cacheable(
+			  value = "studyplan",
+			  key = "#root.target.currentUserService.getCurrentUser().id"
+			)
 	public List<StudyPlanResponseDTO> getStudyPlanByUser() {
 		 User user = currentUserService.getCurrentUser(); // ✅ FIX
 		 List<StudyPlan> plans = studyPlanRepository.findFullPlanWithRelations(user.getId());
@@ -174,6 +186,7 @@ public class StudyPlanService {
 		 return plans.stream().map(this::convertToResponseDTO).toList();
 		
 	}
+	@CacheEvict(value = {"dashboard","studyplan"}, allEntries = true)
 	public List<StudyPlanResponseDTO> regenerateStudyPlan() {
 	    return generateStudyPlan();
 	}
@@ -200,6 +213,10 @@ public class StudyPlanService {
 				studyPlan.getDurationMinutes(),
 				studyPlan.getStudyStatus());
 	}
+	@Cacheable(
+			  value = "studyplan",
+			  key = "#root.target.currentUserService.getCurrentUser().id"
+			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(Pageable pageable) {
 
 	    User user = currentUserService.getCurrentUser();
@@ -210,6 +227,10 @@ public class StudyPlanService {
 
 	    return PaginationResponseDTO.fromPage(page, dtos);
 	}
+	@Cacheable(
+			  value = "studyplan",
+			  key = "#root.target.currentUserService.getCurrentUser().id"
+			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
 	    User user = currentUserService.getCurrentUser(); 
 	    pageable = validatePageable(pageable);

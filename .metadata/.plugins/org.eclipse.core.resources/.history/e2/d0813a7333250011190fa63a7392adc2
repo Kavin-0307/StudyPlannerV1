@@ -1,5 +1,0 @@
-package com.Ajwain.SOS.exception;
-
-public class GlobalExceptionHandler {
-
-}

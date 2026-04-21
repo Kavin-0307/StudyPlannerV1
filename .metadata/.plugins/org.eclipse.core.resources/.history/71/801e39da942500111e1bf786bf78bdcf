@@ -1,9 +1,0 @@
-package com.Ajwain.SOS.services;
-
-public class PdfExtractionService {
-
-	public static String extractText() {
-		return null;
-	}
-
-}

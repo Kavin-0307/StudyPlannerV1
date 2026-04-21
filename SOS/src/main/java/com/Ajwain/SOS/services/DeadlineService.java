@@ -3,6 +3,8 @@ package com.Ajwain.SOS.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +46,7 @@ public class DeadlineService {
 		this.deadlineRepository=deadlineRepository;
 		this.studyPlanService=studyPlanService;
 	}
+	@CacheEvict(value = {"deadlines", "studyplan","dashboard"}, allEntries = true)
 	public DeadlineResponseDTO createDeadline(long subjectId,DeadlineRequestDTO dto) {
 		Deadline deadline =new Deadline();
 		User user = currentUserService.getCurrentUser();
@@ -87,6 +90,7 @@ public class DeadlineService {
 	            .map(this::convertToResponseDTO)
 	            .toList();
 	}
+	@CacheEvict(value = {"deadlines", "studyplan","dashboard"}, allEntries = true)
 	public DeadlineResponseDTO updateDeadline(long deadlineID,DeadlineRequestDTO dto) {
 		Deadline deadline=deadlineRepository.findById(deadlineID).orElseThrow(()->new ResourceNotFoundException("Deadline not found"));
 		if(dto.getDeadlineDate().isBefore(LocalDateTime.now())) {
@@ -108,6 +112,7 @@ public class DeadlineService {
 		return convertToResponseDTO(savedDeadline);
 	}
 	@Transactional
+	@CacheEvict(value = {"deadlines", "studyplan","dashboard"}, allEntries = true)
 	public void deleteDeadline(long deadlineId) {
 	    Deadline deadline = deadlineRepository.findById(deadlineId)
 	        .orElseThrow(() -> new ResourceNotFoundException("Deadline not found"));
@@ -129,6 +134,8 @@ public class DeadlineService {
 	        .map(this::convertToResponseDTO)
 	        .toList();
 	}
+	@Cacheable(value="deadlines",key="#root.target.currentUserService.getCurrentUser().id+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
+
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesBySubject(long subjectId,Pageable pageable){
 		if(pageable.getPageSize()>PaginationConfig.getMaxSize())
 		{
@@ -138,6 +145,7 @@ public class DeadlineService {
 		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(deadline,dtos);
 	}
+	@Cacheable(value="deadlines",key="#root.target.currentUserService.getCurrentUser().id+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesByUser(Pageable pageable){
 		pageable=validatePageable(pageable);
 

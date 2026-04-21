@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -164,7 +165,12 @@ public class LectureService {
 	            .stream()
 	            .map(this::convertToResponseDTO)
 	            .toList();
-	}	public List<LectureResponseDTO> getPendingLecturesByUser() {
+	}
+	@Cacheable(
+			  value = "lectures",
+			  key = "#root.target.currentUserService.getCurrentUser().id + '_pending'"
+			)
+	public List<LectureResponseDTO> getPendingLecturesByUser() {
 
         User user=currentUserService.getCurrentUser();
         return lectureRepository.findBySubject_UserAndProcessedFalse(user)

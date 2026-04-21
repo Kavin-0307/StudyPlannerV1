@@ -1,7 +1,0 @@
-package com.Ajwain.SOS.exception;
-
-public class BadRequestException extends RuntimeExcpetion {
-		public BadRequestException(String message) {
-			super(message);
-		}
-}

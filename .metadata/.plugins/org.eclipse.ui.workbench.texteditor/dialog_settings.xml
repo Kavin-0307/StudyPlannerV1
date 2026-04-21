@@ -4,22 +4,25 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
-			<item value="if(pageable.getPageSize()&gt;PaginationConfig.getMaxSize()) {"/>
-			<item value="if("/>
-			<item value="getPen"/>
-			<item value="process"/>
-			<item value="webflux"/>
-			<item value="sube"/>
-			<item value="/D"/>
-			<item value="ResponseStatusException"/>
-			<item value="ResponseSta"/>
-			<item value="throw"/>
-			<item value="findByUserId"/>
-			<item value="findByUser"/>
+			<item value="getPending"/>
+			<item value="Cache"/>
+			<item value="CacheEvict"/>
+			<item value="CacheEvic"/>
+			<item value="CacheEv"/>
+			<item value="@CacheEvict(value = {&quot;dashboard&quot;,&quot;studyplan&quot;}, allEntries = true)"/>
+			<item value="getToday"/>
+			<item value="cache"/>
+			<item value="updat"/>
 			<item value="delete"/>
-			<item value="Subject"/>
+			<item value="dele"/>
+			<item value="reg"/>
+			<item value="generat"/>
+			<item value="getStudyPlans"/>
+			<item value="getStud"/>
 		</list>
 		<list key="replacehistory">
+			<item value="cacheConfiguration"/>
+			<item value="userEntity"/>
 			<item value="pageable=validatePageable(pageable);"/>
 			<item value="D"/>
 			<item value="ResourceNotFoundException"/>

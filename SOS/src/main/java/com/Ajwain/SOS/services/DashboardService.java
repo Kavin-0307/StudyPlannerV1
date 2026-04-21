@@ -2,6 +2,7 @@ package com.Ajwain.SOS.services;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.Ajwain.SOS.dto.DashboardResponseDTO;
@@ -23,7 +24,7 @@ public class DashboardService {
         this.lectureService = lectureService;
         this.analyticsService = analyticsService;
     }
-
+    @Cacheable(value = "dashboard", key = "#userId")
     public DashboardResponseDTO getDashboard(Long userId) {
         List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan();
         

@@ -2,6 +2,8 @@ package com.Ajwain.SOS.services;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +35,7 @@ public class SubjectService {
         this.subjectRepository = subjectRepository;
         this.currentUserService = currentUserService;
     }
-
+    @CacheEvict(value={"subjects","studyplan","dashboard"},allEntries=true)
     public SubjectResponseDTO createSubject(SubjectRequestDTO dto) {
         User user = currentUserService.getCurrentUser();
         long userId = user.getId();
@@ -52,6 +54,7 @@ public class SubjectService {
         logger.info("Subject created for user {}", userId);
         return convertToResponseDTO(savedSubject);
     }
+    @CacheEvict(value={"subjects","studyplan","dashboard"},allEntries=true)
 
     public SubjectResponseDTO updateSubject(long subjectId, SubjectRequestDTO dto) {
         long currentUserId = currentUserService.getCurrentUserId();
@@ -70,7 +73,7 @@ public class SubjectService {
         logger.info("Subject {} updated", subjectId);
         return convertToResponseDTO(savedSubject);
     }
-
+    @Cacheable(value="subjects",key="#root.target.currentUserService.getCurrentUserId()+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
     public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
         long userId = currentUserService.getCurrentUserId();
         pageable = validatePageable(pageable);
@@ -78,6 +81,7 @@ public class SubjectService {
         List<SubjectResponseDTO> dtos = subjects.getContent().stream().map(this::convertToResponseDTO).toList();
         return PaginationResponseDTO.fromPage(subjects, dtos);
     }
+    @CacheEvict(value={"subjects","studyplan","dashboard"},allEntries=true)
 
     public void deleteSubject(long subjectId) {
         long currentUserId = currentUserService.getCurrentUserId();
