@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.Ajwain.SOS.dto.QueryRequestDTO;
+
 
 import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.enums.OutputType;
@@ -31,9 +33,8 @@ public class AIOutputController {
         return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
     }
     @PostMapping("/query")
-    public ResponseEntity<List<String>> queryLecture(@RequestBody String question) {
-        // question is just the raw string from the frontend chatbox
-        return ResponseEntity.ok(aiOutputService.queryLecture(question));
+    public ResponseEntity<List<String>> queryLecture(@RequestBody QueryRequestDTO req) {
+        return ResponseEntity.ok(aiOutputService.queryLecture(req.question(), req.lectureId()));
     }
     @GetMapping("/lecture/{lectureId}/summary")
     public ResponseEntity<AI_Output> getSummary(@PathVariable Long lectureId) {

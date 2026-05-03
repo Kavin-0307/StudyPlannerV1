@@ -29,7 +29,7 @@ public class FileStorageService {
 
 	    public FileStorageService(
 	            SubjectRepository subjectRepository,
-	            @Value("${storage.base-path:D:/SOS_FILES}") String basePath) {
+	            @Value("${storage.base-path:./sos_files}") String basePath) {
 	        this.subjectRepository = subjectRepository;
 	        this.directoryPath = Paths.get(basePath);
 	        this.lecturePath = Paths.get(basePath, "lectures");
@@ -70,9 +70,10 @@ public class FileStorageService {
 			Path subjectDirectory=createSubjectDirectory(subjectId);
 			
 			 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-		     String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-		     String newFilename = subjectId+"_"+timestamp +"_"+UUID.randomUUID().toString()+ "_" +originalFilename;
-		     Path targetLocation = subjectDirectory.resolve(newFilename);
+		     // SEC-03: never use the original filename in the filesystem path — UUID only.
+		     // Original name is for display only; persist it in the DB if needed.
+		     String storedFilename = subjectId + "_" + timestamp + "_" + UUID.randomUUID() + ".pdf";
+		     Path targetLocation = subjectDirectory.resolve(storedFilename);
 			Files.copy(file.getInputStream(),targetLocation ,StandardCopyOption.REPLACE_EXISTING);
 			return targetLocation;
 			

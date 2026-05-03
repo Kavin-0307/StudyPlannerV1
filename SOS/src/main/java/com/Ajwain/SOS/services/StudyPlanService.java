@@ -166,7 +166,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id"
+			  key = "#root.target.currentUserService.getCurrentUser().id + ':today'"
 			)
 	public List<StudyPlanResponseDTO> getTodayPlan(){
 		User user=currentUserService.getCurrentUser();
@@ -174,7 +174,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id"
+			  key = "#root.target.currentUserService.getCurrentUser().id + ':all'"
 			)
 	public List<StudyPlanResponseDTO> getStudyPlanByUser() {
 		 User user = currentUserService.getCurrentUser(); // ✅ FIX
@@ -215,7 +215,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id"
+			  key = "#root.target.currentUserService.getCurrentUser().id + ':page:' + #pageable.pageNumber"
 			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(Pageable pageable) {
 
@@ -229,7 +229,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id"
+			  key = "#root.target.currentUserService.getCurrentUser().id + ':today-page:' + #pageable.pageNumber"
 			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
 	    User user = currentUserService.getCurrentUser(); 

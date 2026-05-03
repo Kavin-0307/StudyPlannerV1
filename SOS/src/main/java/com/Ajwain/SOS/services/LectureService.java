@@ -41,7 +41,8 @@ public class LectureService {
 	private final  CurrentUserService currentUserService;
 	private final Logger logger=LoggerFactory.getLogger(LectureService.class);
 	private final RevisionService revisionService;
-	public LectureService(RevisionService revisionService,AIOutputService aiOutputService,LectureRepository lectureRepository,SubjectRepository subjectRepository,FileStorageService fileStorageService, CurrentUserService currentUserService)
+	private final PdfExtractionService pdfExtractionService;
+	public LectureService(RevisionService revisionService, AIOutputService aiOutputService, LectureRepository lectureRepository, SubjectRepository subjectRepository, FileStorageService fileStorageService, CurrentUserService currentUserService, PdfExtractionService pdfExtractionService)
 	{
 		this.currentUserService = currentUserService;
 		this.revisionService=revisionService;
@@ -49,6 +50,7 @@ public class LectureService {
 		this.fileStorageService=fileStorageService;
 		this.lectureRepository=lectureRepository;
 		this.subjectRepository=subjectRepository;
+		this.pdfExtractionService=pdfExtractionService;
 	}	
 	// ============== CREATE LECTURE ==============
 	public LectureResponseDTO createLecture(MultipartFile file,Long subjectId,LectureRequestDTO dto) {
@@ -105,7 +107,7 @@ public class LectureService {
 		String filePath=lecture.getFilePath();
 		String extractedText="";
 		try {
-			extractedText = PdfExtractionService.extractText(filePath);
+			extractedText = pdfExtractionService.extractText(filePath);
 		} catch (Exception e) {
 			
 			e.printStackTrace();

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PdfExtractionService {
 
-    public static String extractText(String filePath) {
+    public String extractText(String filePath) {
         try (PDDocument document = PDDocument.load(new File(filePath))) {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(document);

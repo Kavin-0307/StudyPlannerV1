@@ -44,7 +44,8 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {})
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -66,10 +67,8 @@ public class SecurityConfig {
         org.springframework.web.cors.CorsConfiguration config =
             new org.springframework.web.cors.CorsConfiguration();
 
-        config.setAllowedOrigins(java.util.List.of(
-            "http://localhost:5173",
-            "http://localhost:8081"
-        ));
+        config.setAllowedOriginPatterns(java.util.List.of("*"));
+
 
         // Explicitly list methods instead of "*"
         config.setAllowedMethods(java.util.List.of(
