@@ -14,7 +14,7 @@ import com.Ajwain.SOS.entities.enums.RevisionStatus;
 
 public interface RevisionRepository extends JpaRepository<Revision,Long>,JpaSpecificationExecutor<Revision> {
 	List<Revision> findByLectureId(Long lectureId);
-	
+	Page<Revision> findByLectureIdAndLectureSubjectUserId(Long lectureId,Long userId,Pageable pageable);
 	List<Revision> findByLectureSubjectUserId(Long userId);
 	List<Revision> findByLectureSubjectUserIdAndRevisionDateLessThanEqualAndStatus(
 		    Long userId,LocalDate date,RevisionStatus status

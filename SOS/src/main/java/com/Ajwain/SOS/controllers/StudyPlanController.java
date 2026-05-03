@@ -20,6 +20,7 @@ import com.Ajwain.SOS.dto.PaginationResponseDTO;import com.Ajwain.SOS.dto.StudyP
 import com.Ajwain.SOS.dto.StudyPlanSearchCriteria;
 
 import com.Ajwain.SOS.entities.enums.StudyStatus;
+import com.Ajwain.SOS.exception.BadRequestException;
 import com.Ajwain.SOS.services.StudyPlanService;
 @RestController
 @RequestMapping("/api/studyplans")
@@ -45,16 +46,21 @@ public class StudyPlanController {
 		return ResponseEntity.ok(studyPlanService.getPlanByDateRange( start, end));
 	}
 	@PatchMapping("/{planId}/status")
-	public ResponseEntity<StudyPlanResponseDTO> updateStatus(
-	        @PathVariable Long planId,
-	        @RequestBody Map<String, String> body){
+	public ResponseEntity<StudyPlanResponseDTO> updateStatus(@PathVariable Long planId,@RequestBody Map<String, String> body) {
 
-	    return ResponseEntity.ok(
-	        studyPlanService.updateStudyStatus(
-	            planId,
-	            Enum.valueOf(com.Ajwain.SOS.entities.enums.StudyStatus.class, body.get("status"))
-	        )
-	    );
+	    String statusStr = body.get("status");
+	    if (statusStr == null || statusStr.isBlank()) {
+	        throw new BadRequestException("'status' field is required");
+	    }
+	    StudyStatus status;
+	    try {
+	        status = StudyStatus.valueOf(statusStr.toUpperCase());
+	    } catch (IllegalArgumentException e) {
+	        throw new BadRequestException("Invalid status value: '" + statusStr+ "'. Valid values: " + java.util.Arrays.toString(StudyStatus.values())
+	        );
+	    }
+
+	    return ResponseEntity.ok(studyPlanService.updateStudyStatus(planId, status));
 	}
 	@GetMapping("/user/progress")
 	public ResponseEntity<Map<String, Long>> getProgress(){

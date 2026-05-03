@@ -63,21 +63,26 @@ public class SecurityConfig {
     }
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
-        
+        org.springframework.web.cors.CorsConfiguration config =
+            new org.springframework.web.cors.CorsConfiguration();
+
         config.setAllowedOrigins(java.util.List.of(
             "http://localhost:5173",
             "http://localhost:8081"
         ));
-        
-        config.setAllowedMethods(java.util.List.of("*"));
+
+        // Explicitly list methods instead of "*"
+        config.setAllowedMethods(java.util.List.of(
+            "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        ));
+
         config.setAllowedHeaders(java.util.List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
             new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-        
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-}
+    }

@@ -1,6 +1,6 @@
 package com.Ajwain.SOS.services;
 
-import java.util.List;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -30,32 +30,27 @@ public class AIOutputService {
 		saveAIOutput(lecture,response);
 		restTemplate.postForObject(url+"/index", request, java.util.Map.class);
 	}
-	private AIResponseDTO callAIService(String lectureText) {
-		AIRequestDTO request=new AIRequestDTO();
-		request.setText(lectureText);
-		AIResponseDTO response=restTemplate.postForObject(url, request, AIResponseDTO.class);
-		return response;
-	}
+
 	private void saveAIOutput(Lecture lecture,AIResponseDTO response) {
 		AI_Output keywordsOutput=new AI_Output();
 		keywordsOutput.setLecture(lecture);
 		keywordsOutput.setOutputType(OutputType.KEYWORDS);
-		keywordsOutput.setOutputContent(String.join(", ",response.getKeywords()));
+		keywordsOutput.setOutputContent(String.join(", ",response.keywords()));
 		aiOutputRepository.save(keywordsOutput);
 		AI_Output summaryOutput = new AI_Output();
         summaryOutput.setLecture(lecture);
         summaryOutput.setOutputType(OutputType.SUMMARY);
-        summaryOutput.setOutputContent(response.getSummary());
+        summaryOutput.setOutputContent(response.summary());
         aiOutputRepository.save(summaryOutput);
         AI_Output pointsOutput = new AI_Output();
         pointsOutput.setLecture(lecture);
         pointsOutput.setOutputType(OutputType.IMPORTANT_POINTS);
-        pointsOutput.setOutputContent(String.join("\n",response.getImportantPoints()));
+        pointsOutput.setOutputContent(String.join("\n",response.importantPoints()));
         aiOutputRepository.save(pointsOutput);
         AI_Output sheetOutput = new AI_Output();
         sheetOutput.setLecture(lecture);
         sheetOutput.setOutputType(OutputType.REVISION_SHEET);
-        sheetOutput.setOutputContent(response.getRevisionSheet());
+        sheetOutput.setOutputContent(response.revisionSheet());
         aiOutputRepository.save(sheetOutput);
 	}
 	public List<AI_Output> getOutputsForLecture(Long lectureId) {
@@ -64,15 +59,21 @@ public class AIOutputService {
 
     // Retrieve specific output type
     public AI_Output getOutputByType(Long lectureId, OutputType type) {
-        return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
+        return aiOutputRepository.findByLectureIdAndOutputType(lectureId, type);
     }
     public List<String> queryLecture(String question) {
-        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         body.put("question", question);
         body.put("k", 3);
 
-        java.util.Map<String, Object> response = restTemplate.postForObject(url + "/query", body, java.util.Map.class);
-        return (List<String>) response.get("results");
+        Map<String, Object> response = restTemplate.postForObject(url + "/query", body, Map.class);
+
+        List<Map<String, Object>> results =
+            (List<Map<String, Object>>) response.get("results");
+
+        return results.stream()
+            .map(r -> (String) r.get("text"))
+            .toList();
     }
 
 }

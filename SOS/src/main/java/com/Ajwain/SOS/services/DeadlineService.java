@@ -37,7 +37,7 @@ public class DeadlineService {
 	private final SubjectRepository subjectRepository;
 	private final DeadlineRepository deadlineRepository;
 	private final CurrentUserService currentUserService;
-	private final Logger logger=LoggerFactory.getLogger(StudyPlanService.class);
+	private final Logger logger=LoggerFactory.getLogger(DeadlineService.class);
 	
 	private final StudyPlanService studyPlanService;
 	public DeadlineService(SubjectRepository subjectRepository,DeadlineRepository deadlineRepository,StudyPlanService studyPlanService ,CurrentUserService currentUserService) {
@@ -155,24 +155,48 @@ public class DeadlineService {
 		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(deadline,dtos);
 	}
-	public PaginationResponseDTO<DeadlineResponseDTO> getUpcomingDeadline(Pageable pageable){
-		pageable=validatePageable(pageable);
-		
-		Page<Deadline> deadline=deadlineRepository.findByDeadlineDateAfter(LocalDateTime.now(),pageable);
-		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(deadline,dtos);
+	public PaginationResponseDTO<DeadlineResponseDTO> getUpcomingDeadline(Pageable pageable) {
+	    pageable = validatePageable(pageable);
+	    User user = currentUserService.getCurrentUser();
+
+	    Page<Deadline> deadline = deadlineRepository
+	        .findBySubject_UserAndDeadlineDateAfter(user, LocalDateTime.now(), pageable);
+
+	    List<DeadlineResponseDTO> dtos = deadline.getContent()
+	        .stream()
+	        .map(this::convertToResponseDTO)
+	        .toList();
+
+	    return PaginationResponseDTO.fromPage(deadline, dtos);
 	}
-	public PaginationResponseDTO<DeadlineResponseDTO> getOverdueDeadlines(Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<Deadline> deadline=deadlineRepository.findByDeadlineDateBefore(LocalDateTime.now(),pageable);
-		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(deadline,dtos);
+	public PaginationResponseDTO<DeadlineResponseDTO> getOverdueDeadlines(Pageable pageable) {
+	    pageable = validatePageable(pageable);
+	    User user = currentUserService.getCurrentUser();
+
+	    Page<Deadline> deadline = deadlineRepository
+	        .findBySubject_UserAndDeadlineDateBefore(user, LocalDateTime.now(), pageable);
+
+	    List<DeadlineResponseDTO> dtos = deadline.getContent()
+	        .stream()
+	        .map(this::convertToResponseDTO)
+	        .toList();
+
+	    return PaginationResponseDTO.fromPage(deadline, dtos);
 	}
-	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesByType(DeadlineType type,Pageable pageable){
-		pageable=validatePageable(pageable);
-		Page<Deadline> deadline=deadlineRepository.findByDeadlineType(type,pageable);
-		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
-		return PaginationResponseDTO.fromPage(deadline,dtos);
+	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesByType(
+	        DeadlineType type, Pageable pageable) {
+	    pageable = validatePageable(pageable);
+	    User user = currentUserService.getCurrentUser();
+
+	    Page<Deadline> deadline = deadlineRepository
+	        .findBySubject_UserAndDeadlineType(user, type, pageable);
+
+	    List<DeadlineResponseDTO> dtos = deadline.getContent()
+	        .stream()
+	        .map(this::convertToResponseDTO)
+	        .toList();
+
+	    return PaginationResponseDTO.fromPage(deadline, dtos);
 	}
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlines(DeadlineSearchCriteria criteria,
 	        Pageable pageable){

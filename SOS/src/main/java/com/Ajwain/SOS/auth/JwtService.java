@@ -6,28 +6,37 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import com.Ajwain.SOS.entities.User;
 
 import io.jsonwebtoken.security.Keys;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 @Service
 public class JwtService {
-	private static final String SECRET = "your-very-long-secret-key-at-least-32-characters";
-	public String generateToken(String identifier) {
-		Map<String,Object> claims=new HashMap<>();
-		
-		return Jwts.builder().setClaims(claims).setSubject(identifier).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis()+1000*60*30)).signWith(getSignKey(),SignatureAlgorithm.HS256).compact();
-	}
-	public Key getSignKey() {
-		return Keys.hmacShaKeyFor(SECRET.getBytes());
-	}
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiry-ms}")
+    private long expiryMs;
+    public String generateToken(String identifier) {
+        Map<String, Object> claims = new HashMap<>();
+        return Jwts.builder()
+            .setClaims(claims)
+            .setSubject(identifier)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expiryMs))
+            .signWith(getSignKey(), SignatureAlgorithm.HS256)
+            .compact();
+    }
+
+    public Key getSignKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
 	public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

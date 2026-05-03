@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,29 +23,33 @@ import com.Ajwain.SOS.repositories.SubjectRepository;
 @Service
 public class FileStorageService {
 	
-	private final SubjectRepository subjectRepository;
-	private final Path directoryPath;
-	private final Path lecturePath;
-	public FileStorageService(SubjectRepository subjectRepository) {
-		this.subjectRepository=subjectRepository;
-		 directoryPath=Paths.get("D:/SOS_FILES");
-		 lecturePath=Paths.get("D:/SOS_FILES/lectures");
-		 createDirectory();
-	}
-	private Path createDirectory() {
-	
-	try {
-	Files.createDirectories(directoryPath);
-	Files.createDirectories(lecturePath);
+	    private final SubjectRepository subjectRepository;
+	    private final Path directoryPath;
+	    private final Path lecturePath;
 
-	Files.createDirectories(Paths.get("D:/SOS_FILES/temp"));
+	    public FileStorageService(
+	            SubjectRepository subjectRepository,
+	            @Value("${storage.base-path:D:/SOS_FILES}") String basePath) {
+	        this.subjectRepository = subjectRepository;
+	        this.directoryPath = Paths.get(basePath);
+	        this.lecturePath = Paths.get(basePath, "lectures");
+	        createDirectory();
+	    }
 
-	Files.createDirectories(Paths.get("D:/SOS_FILES/processed"));
-	}catch (IOException i) {
-		System.out.println("Unable to create the directory");
-	}
-	return directoryPath;
-	}
+	    private Path createDirectory() {
+	        try {
+	            Files.createDirectories(directoryPath);
+	            Files.createDirectories(lecturePath);
+	            Files.createDirectories(Paths.get(directoryPath.toString(), "temp"));
+	            Files.createDirectories(Paths.get(directoryPath.toString(), "processed"));
+	        } catch (IOException i) {
+	            throw new RuntimeException("Unable to create the directory: " + i.getMessage());
+	        }
+	        return directoryPath;
+	    }
+
+	  
+
 	public Path saveUploadedFile(MultipartFile file,long subjectId) throws IOException {
 			Tika tika=new Tika();
 			String detectedType="";
@@ -63,7 +68,7 @@ public class FileStorageService {
 				throw new BadRequestException("Invalid file type");
 			}
 			Path subjectDirectory=createSubjectDirectory(subjectId);
-			//Creating a new file name
+			
 			 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 		     String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
 		     String newFilename = subjectId+"_"+timestamp +"_"+UUID.randomUUID().toString()+ "_" +originalFilename;
@@ -72,37 +77,27 @@ public class FileStorageService {
 			return targetLocation;
 			
 	}
-	public Path saveFileFromPath(String existingPath,long subjectId) throws IOException {
-		Path path=Paths.get(existingPath);
-		File file=path.toFile();
-		if(!Files.exists(path)||!file.isFile()) {
-			throw new ResourceNotFoundException("No file found at locations");
-			
-		}
-		Tika tika=new Tika();
-		String detectedType="";
-		
-		detectedType = tika.detect(file);
-		
-		
-		if("application/pdf".equals(detectedType))
-		{
-			System.out.println("Valid file");
-	
-		}
-		else
-		{
-			System.out.println("Invalid");
-			return null;
-		}
+	public Path saveFileFromPath(String existingPath, long subjectId) throws IOException {
+	    Path path = Paths.get(existingPath);
+	    File file = path.toFile();
 
-		Path subjectDirectory=createSubjectDirectory(subjectId);
-		 String uniqueFilename=UUID.randomUUID().toString()+"_"+file.getName();
-		 Path targetPath=subjectDirectory.resolve(uniqueFilename);
-		 
-		
-		 Files.copy(path,targetPath, StandardCopyOption.REPLACE_EXISTING);
-		 return targetPath;
+	    if (!Files.exists(path) || !file.isFile()) {
+	        throw new ResourceNotFoundException("No file found at location: " + existingPath);
+	    }
+
+	    Tika tika = new Tika();
+	    String detectedType = tika.detect(file);
+
+	    if (!"application/pdf".equals(detectedType)) {
+	        throw new BadRequestException("File at path is not a valid PDF");
+	    }
+
+	    Path subjectDirectory = createSubjectDirectory(subjectId);
+	    String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getName();
+	    Path targetPath = subjectDirectory.resolve(uniqueFilename);
+
+	    Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
+	    return targetPath;
 	}
 	public Path loadFile(String path) {
 		Path p1=Paths.get(path);
@@ -124,12 +119,13 @@ public class FileStorageService {
 		
 	}
 	public Path moveToProcessed(Path filePath) throws IOException {
-	    Path processedDir = Paths.get(directoryPath.toString(), "processed");
+	    Path processedDir = directoryPath.resolve("processed");
 	    Files.createDirectories(processedDir);
 
-	    Path target = processedDir.resolve(filePath.getFileName());
-	    Files.move(filePath, target, StandardCopyOption.REPLACE_EXISTING);
+	    String uniqueName = UUID.randomUUID().toString() + "_" + filePath.getFileName();
+	    Path target = processedDir.resolve(uniqueName);
 
+	    Files.move(filePath, target, StandardCopyOption.REPLACE_EXISTING);
 	    return target;
 	}
 	public long getFileSize(String filePath) throws IOException{

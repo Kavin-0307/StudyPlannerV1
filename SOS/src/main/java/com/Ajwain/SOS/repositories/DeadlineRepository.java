@@ -23,7 +23,17 @@ public interface DeadlineRepository extends JpaRepository<Deadline,Long>,JpaSpec
 	Page<Deadline> findBySubject_User(User user, Pageable pageable);
 	List<Deadline> findBySubjectId(Long subjectId);
 	List<Deadline> findBySubjectUserIdAndDeadlineDateAfterOrderByDeadlineDateAsc(long userId,LocalDateTime now);
-	
+	Page<Deadline> findBySubject_UserAndDeadlineDateAfter(
+		    User user, LocalDateTime date, Pageable pageable
+		);
+
+		Page<Deadline> findBySubject_UserAndDeadlineDateBefore(
+		    User user, LocalDateTime date, Pageable pageable
+		);
+
+		Page<Deadline> findBySubject_UserAndDeadlineType(
+		    User user, DeadlineType type, Pageable pageable
+		);
 	@Query("""
 		    SELECT d FROM Deadline d
 		    JOIN FETCH d.subject s

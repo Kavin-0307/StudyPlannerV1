@@ -1,5 +1,6 @@
 package com.Ajwain.SOS.auth;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,22 +20,28 @@ public class AuthService {
 		this.jwtService=jwtService;
 		this.passwordEncoder=passwordEncoder;
 	}
-	public AuthResponseDTO register(RegisterRequestDTO dto) {
-			if(userRepository.findByUserEmail(dto.getUserEmail()) .isPresent()||userRepository.findByUserName(dto.getUserName()).isPresent())
-				throw new BadRequestException("The user already exists");
-			User user=new User();
-			user.setUserName(dto.getUserName());
-			user.setUserEmail(dto.getUserEmail());
-			user.setPassword(passwordEncoder.encode(dto.getPassword()));
-			user.setUserStatus(true);
-			user.setUserId(UUID.randomUUID().toString());
-			User saved=userRepository.save(user);
-			//add a jwt here
-			String token = jwtService.generateToken(saved.getUserEmail());
-			return convertToResponseDTO(saved,token);
-			
-		
-	}
+	 public AuthResponseDTO register(RegisterRequestDTO dto) {
+	        if (userRepository.findByUserEmail(dto.getUserEmail()).isPresent()
+	            || userRepository.findByUserName(dto.getUserName()).isPresent()) {
+	            throw new BadRequestException("The user already exists");
+	        }
+
+	        try {
+	            User user = new User();
+	            user.setUserName(dto.getUserName());
+	            user.setUserEmail(dto.getUserEmail());
+	            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+	            user.setUserStatus(true);
+	            user.setUserId(UUID.randomUUID().toString());
+
+	            User saved = userRepository.save(user);
+	            String token = jwtService.generateToken(saved.getUserEmail());
+	            return convertToResponseDTO(saved, token);
+
+	        } catch (DataIntegrityViolationException e) {
+	            throw new BadRequestException("The user already exists");
+	        }
+	    }
 	public AuthResponseDTO login(LoginRequestDTO dto) {
 		String identifier=dto.getIdentifier();
 		  if (identifier == null) {

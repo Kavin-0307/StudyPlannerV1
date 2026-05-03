@@ -4,6 +4,9 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="StudyP"/>
+			<item value="getUpd"/>
+			<item value="response.i"/>
 			<item value="e.prin"/>
 			<item value="getPending"/>
 			<item value="Cache"/>
@@ -16,9 +19,6 @@
 			<item value="updat"/>
 			<item value="delete"/>
 			<item value="dele"/>
-			<item value="reg"/>
-			<item value="generat"/>
-			<item value="getStudyPlans"/>
 		</list>
 		<list key="replacehistory">
 			<item value="cacheConfiguration"/>

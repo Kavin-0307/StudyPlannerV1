@@ -68,7 +68,7 @@ public class RevisionService {
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
 	}
-	public PaginationResponseDTO<RevisionResponseDTO> getDueRevisions(long userId,Pageable pageable){
+	public PaginationResponseDTO<RevisionResponseDTO> getDueRevisions(Pageable pageable){
 		User user = currentUserService.getCurrentUser();
 		pageable = validatePageable(pageable);
 		Page<Revision> revision =
