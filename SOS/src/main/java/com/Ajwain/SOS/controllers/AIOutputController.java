@@ -6,6 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.web.bind.annotation.PostMapping;
+
+import org.springframework.web.bind.annotation.RequestBody;
+
+
 import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.enums.OutputType;
 import com.Ajwain.SOS.services.AIOutputService;
@@ -24,7 +30,11 @@ public class AIOutputController {
 
         return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
     }
-
+    @PostMapping("/query")
+    public ResponseEntity<List<String>> queryLecture(@RequestBody String question) {
+        // question is just the raw string from the frontend chatbox
+        return ResponseEntity.ok(aiOutputService.queryLecture(question));
+    }
     @GetMapping("/lecture/{lectureId}/summary")
     public ResponseEntity<AI_Output> getSummary(@PathVariable Long lectureId) {
 

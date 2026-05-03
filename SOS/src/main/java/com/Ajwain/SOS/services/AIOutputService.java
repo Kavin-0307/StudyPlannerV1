@@ -15,15 +15,20 @@ import com.Ajwain.SOS.repositories.AIOutputRepository;
 @Service
 public class AIOutputService {
 	private final AIOutputRepository aiOutputRepository;
-	private final String url="http://127.0.0.1:8000";
+	private final String url="http://127.0.0.1:8000/api";
 	private final RestTemplate restTemplate;
 	public AIOutputService(AIOutputRepository aiOutputRepository) {
 		this.aiOutputRepository=aiOutputRepository;
 		this.restTemplate=new RestTemplate();
 	}
 	public void  generateAIOutputsForLecture(Lecture lecture,String lectureText) {
-		AIResponseDTO response=callAIService(lectureText);
+		AIRequestDTO request=new AIRequestDTO();
+		request.setText(lectureText);
+		
+		AIResponseDTO response=restTemplate.postForObject(url+"/process",request, AIResponseDTO.class);
+		if(response!=null)
 		saveAIOutput(lecture,response);
+		restTemplate.postForObject(url+"/index", request, java.util.Map.class);
 	}
 	private AIResponseDTO callAIService(String lectureText) {
 		AIRequestDTO request=new AIRequestDTO();
@@ -61,4 +66,13 @@ public class AIOutputService {
     public AI_Output getOutputByType(Long lectureId, OutputType type) {
         return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
     }
+    public List<String> queryLecture(String question) {
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("question", question);
+        body.put("k", 3);
+
+        java.util.Map<String, Object> response = restTemplate.postForObject(url + "/query", body, java.util.Map.class);
+        return (List<String>) response.get("results");
+    }
+
 }

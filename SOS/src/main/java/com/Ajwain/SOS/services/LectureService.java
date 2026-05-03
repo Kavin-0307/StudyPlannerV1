@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
-
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +32,7 @@ import com.Ajwain.SOS.specifications.LectureSpecification;
 import com.Ajwain.SOS.storage.FileStorageService;
 
 @Service
+@Transactional
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final SubjectRepository subjectRepository;
@@ -108,7 +109,8 @@ public class LectureService {
 		} catch (Exception e) {
 			
 			e.printStackTrace();
-		}
+			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
+			}
 
 		aiOutputService.generateAIOutputsForLecture(lecture, extractedText);
 		revisionService.createRevisionSchedule(lecture);
