@@ -176,11 +176,7 @@ public class LectureService {
 	            .map(this::convertToResponseDTO)
 	            .toList();
 	}
-	@Cacheable(
-			  value = "lectures",
-			  key = "#root.target.currentUserService.getCurrentUser().id + '_pending'"
-			)
-	public List<LectureResponseDTO> getPendingLecturesByUser() {
+		public List<LectureResponseDTO> getPendingLecturesByUser() {
 
         User user=currentUserService.getCurrentUser();
         return lectureRepository.findBySubject_UserAndProcessedFalse(user)

@@ -8751,3 +8751,23 @@ Caused by: org.apache.maven.model.building.ModelBuildingException: 1 problem was
 2026-05-04 09:31:10,507 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
 2026-05-04 09:31:10,512 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
 2026-05-04 09:32:28,583 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:32:28,587 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:32:28,589 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:32:50,504 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:32:50,525 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:32:50,531 [Worker-131: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:32:59,610 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:32:59,615 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:32:59,619 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:33:16,645 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:33:16,653 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:33:16,657 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:34:31,867 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:34:31,872 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:34:31,875 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:34:37,957 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:34:37,977 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:34:37,981 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources
+2026-05-04 09:35:53,089 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 2 resources from src\main\resources to target\classes
+2026-05-04 09:35:53,168 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-04 09:35:53,184 [Worker-134: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory C:\Users\Kavin\StudyPlannerV1\SOS\src\test\resources

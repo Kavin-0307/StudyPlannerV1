@@ -21,7 +21,7 @@ import com.Ajwain.SOS.repositories.AIOutputRepository;
 @Service
 public class AIOutputService {
 	private final AIOutputRepository aiOutputRepository;
-	@Value("${docmind.url:http://127.0.0.1:8000/api}")
+	@Value("${docmind.api.url:http://127.0.0.1:8000/api}")
 	private String url;
 	private final RestTemplate restTemplate;
 	
@@ -125,11 +125,7 @@ public class AIOutputService {
 		return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
 	}
 
-	/**
-	 * Queries the FAISS index for the given lecture.
-	 * session_id is reconstructed from lectureId — matches what was used at index time.
-	 * Throws BadRequestException (→ HTTP 400) if the lecture has not been indexed yet.
-	 */
+	
 	public List<Map<String,Object>> queryLecture(String question, Long lectureId) {
 		if (question == null || question.isBlank()) {
 		    throw new BadRequestException("Question cannot be empty");

@@ -4,21 +4,21 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
-			<item value="@PostMapping(&quot;"/>
-			<item value="/proc"/>
-			<item value="StudyP"/>
-			<item value="getUpd"/>
-			<item value="response.i"/>
-			<item value="e.prin"/>
 			<item value="getPending"/>
-			<item value="Cache"/>
-			<item value="CacheEvict"/>
-			<item value="CacheEvic"/>
-			<item value="CacheEv"/>
-			<item value="@CacheEvict(value = {&quot;dashboard&quot;,&quot;studyplan&quot;}, allEntries = true)"/>
-			<item value="getToday"/>
-			<item value="cache"/>
-			<item value="updat"/>
+			<item value="do"/>
+			<item value="docm"/>
+			<item value="saveAiOutput"/>
+			<item value="generateAiOutputs"/>
+			<item value="generate"/>
+			<item value="mark"/>
+			<item value="processLe"/>
+			<item value="proc"/>
+			<item value="lectures"/>
+			<item value="(Revision) revisi"/>
+			<item value="(Revision)"/>
+			<item value="String time"/>
+			<item value="pdfEx"/>
+			<item value="if(st"/>
 		</list>
 		<list key="replacehistory">
 			<item value="cacheConfiguration"/>

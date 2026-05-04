@@ -32,4 +32,5 @@
     <fullyQualifiedTypeName name="org.springframework.data.redis.cache.RedisCacheConfiguration"/>
     <fullyQualifiedTypeName name="java.time.Duration"/>
     <fullyQualifiedTypeName name="org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair"/>
+    <fullyQualifiedTypeName name="com.fasterxml.jackson.annotation.JsonProperty"/>
 </qualifiedTypeNameHistroy>
