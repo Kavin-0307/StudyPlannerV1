@@ -80,7 +80,7 @@ public class RevisionService {
 		 User user = currentUserService.getCurrentUser(); 
 		Page<Revision> revision=revisionRepository.findByLectureId(lectureId, pageable);
 		 revision.getContent().forEach(r -> {
-			 assertOwnership(((Revision) revision).getLecture().getSubject().getUser().getId(),user.getId());
+			 assertOwnership(r.getLecture().getSubject().getUser().getId(),user.getId());
 
 	        });
 

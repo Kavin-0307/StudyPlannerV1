@@ -33,7 +33,7 @@ public class AIOutputService {
 	}
 
 	
-	
+	/*
 	public void generateAIOutputsForLecture(Lecture lecture, String lectureText) {
 		String sessionId = "lecture_" + lecture.getId();
 
@@ -63,7 +63,34 @@ public class AIOutputService {
 		    );
 		}
 	}
+*/public AIResponseDTO generateAIOutputsForLecture(String lectureText) {
 
+    AIRequestDTO processRequest = new AIRequestDTO();
+    processRequest.setText(lectureText);
+
+    try {
+        return restTemplate.postForObject(url + "/process", processRequest, AIResponseDTO.class);
+    } catch (Exception e) {
+        logger.error("Processing failed", e);
+        throw new RuntimeException("AI processing failed");
+    }
+}public void saveAIOutputs(Lecture lecture, AIResponseDTO response) {
+
+    // delete old outputs (IMPORTANT)
+    aiOutputRepository.deleteById(lecture.getId());
+
+    saveAIOutput(lecture, response);
+}public void indexLecture(String lectureText, Long lectureId) {
+    String sessionId = "lecture_" + lectureId;
+
+    IndexRequestDTO indexRequest = new IndexRequestDTO(lectureText, sessionId);
+
+    try {
+        restTemplate.postForObject(url + "/index", indexRequest, Map.class);
+    } catch (Exception e) {
+        throw new RuntimeException("Indexing failed");
+    }
+}
 	private void saveAIOutput(Lecture lecture, AIResponseDTO response) {
 		AI_Output keywordsOutput = new AI_Output();
 		keywordsOutput.setLecture(lecture);
@@ -95,7 +122,7 @@ public class AIOutputService {
 	}
 
 	public AI_Output getOutputByType(Long lectureId, OutputType type) {
-		return aiOutputRepository.findByLectureIdAndOutputType(lectureId, type);
+		return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
 	}
 
 	/**

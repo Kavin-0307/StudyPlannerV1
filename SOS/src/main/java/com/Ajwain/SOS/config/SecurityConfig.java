@@ -51,8 +51,7 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
-            		.requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+            		.requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
 
@@ -67,7 +66,7 @@ public class SecurityConfig {
         org.springframework.web.cors.CorsConfiguration config =
             new org.springframework.web.cors.CorsConfiguration();
 
-        config.setAllowedOriginPatterns(java.util.List.of("*"));
+        config.setAllowedOrigins(java.util.List.of("http://localhost:8081","http://localhost:5173"));
 
 
         // Explicitly list methods instead of "*"

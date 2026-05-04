@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.Ajwain.SOS.auth.CurrentUserService;
 import com.Ajwain.SOS.config.PaginationConfig;
+import com.Ajwain.SOS.dto.AIResponseDTO;
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
 import com.Ajwain.SOS.dto.LectureSearchCriteria;
@@ -78,7 +79,7 @@ public class LectureService {
 	}
 	
 	// ============== PROCESSING THE LECTURE ==============
-	@Transactional
+	
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
 		User user=currentUserService.getCurrentUser();
 
@@ -109,11 +110,26 @@ public class LectureService {
 			e.printStackTrace();
 			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
 			}
+		// 1. ML CALL (NO DB)
+		AIResponseDTO response = aiOutputService.generateAIOutputsForLecture(extractedText);
 
-		aiOutputService.generateAIOutputsForLecture(lecture, extractedText);
-		revisionService.createRevisionSchedule(lecture);
+		// 2. DB UPDATE
+		LectureResponseDTO result = markProcessed(lectureId, extractedText);
 
-		return markProcessed(lectureId,extractedText);
+		// reload updated lecture (IMPORTANT)
+		Lecture updatedLecture = lectureRepository.findById(lectureId)
+		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
+		// 3. SAVE OUTPUTS
+		aiOutputService.saveAIOutputs(updatedLecture, response);
+
+		// 4. CREATE REVISION
+		revisionService.createRevisionSchedule(updatedLecture);
+
+		// 5. INDEX
+		aiOutputService.indexLecture(extractedText, lectureId);
+
+		return result;
 	}@Transactional
 	
 	// ============== DELETE ==============

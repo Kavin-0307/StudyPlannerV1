@@ -14,9 +14,6 @@ import io.lettuce.core.dynamic.annotation.Param;
 public interface AIOutputRepository extends JpaRepository<AI_Output,Long>{
 	List<AI_Output> findByLectureId(long lectureId);
 	@Query("SELECT a FROM AI_Output a WHERE a.lecture.id = :lectureId AND a.aiOutputType = :type")
-	AI_Output findByLectureIdAndOutputType(
-	    @Param("lectureId") Long lectureId,
-	    @Param("type") OutputType type
-	);
+	AI_Output findByLectureIdAndAiOutputType(Long lectureId, OutputType type);
 
 }
