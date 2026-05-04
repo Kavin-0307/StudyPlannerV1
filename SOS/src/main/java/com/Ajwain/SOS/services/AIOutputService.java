@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.Ajwain.SOS.dto.AIOutputDTO;
 import com.Ajwain.SOS.dto.AIRequestDTO;
 import com.Ajwain.SOS.dto.AIResponseDTO;
 import com.Ajwain.SOS.dto.IndexRequestDTO;
@@ -33,37 +34,7 @@ public class AIOutputService {
 	}
 
 	
-	/*
-	public void generateAIOutputsForLecture(Lecture lecture, String lectureText) {
-		String sessionId = "lecture_" + lecture.getId();
-
-		AIRequestDTO processRequest = new AIRequestDTO();
-		processRequest.setText(lectureText);
-
-		AIResponseDTO response=null ;
-		try {
-		response=restTemplate.postForObject(url + "/process", processRequest, AIResponseDTO.class);
-		}
-		catch(Exception e){
-			logger.error("Processing failed for lecture{}",lecture.getId(),e);
-			throw new RuntimeException("AI processing failed");
-		}
-		
-		if (response != null)
-			saveAIOutput(lecture, response);
-		IndexRequestDTO indexRequest = new IndexRequestDTO(lectureText, sessionId);
-		try {
-		    restTemplate.postForObject(url + "/index", indexRequest, Map.class);
-		    logger.info("Lecture indexed successfully");
-		} catch (Exception e) {
-		    logger.error("Indexing FAILED for lecture {}", lecture.getId(), e);
-
-		    throw new RuntimeException(
-		        "Indexing failed. Lecture processing aborted. Please retry."
-		    );
-		}
-	}
-*/public AIResponseDTO generateAIOutputsForLecture(String lectureText) {
+	public AIResponseDTO generateAIOutputsForLecture(String lectureText) {
 
     AIRequestDTO processRequest = new AIRequestDTO();
     processRequest.setText(lectureText);
@@ -76,8 +47,8 @@ public class AIOutputService {
     }
 }public void saveAIOutputs(Lecture lecture, AIResponseDTO response) {
 
-    // delete old outputs (IMPORTANT)
-    aiOutputRepository.deleteById(lecture.getId());
+
+    aiOutputRepository.deleteByLectureId(lecture.getId());
 
     saveAIOutput(lecture, response);
 }public void indexLecture(String lectureText, Long lectureId) {
@@ -117,12 +88,14 @@ public class AIOutputService {
 		aiOutputRepository.save(sheetOutput);
 	}
 
-	public List<AI_Output> getOutputsForLecture(Long lectureId) {
-		return aiOutputRepository.findByLectureId(lectureId);
+	public List<AIOutputDTO> getOutputsForLecture(Long lectureId) {
+	    return aiOutputRepository.findByLectureId(lectureId)
+	        .stream().map(this::toDTO).toList();
 	}
-
-	public AI_Output getOutputByType(Long lectureId, OutputType type) {
-		return aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
+	public AIOutputDTO getOutputByType(Long lectureId, OutputType type) {
+		AI_Output entity=aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
+		if(entity==null)return null;
+		return toDTO(entity);
 	}
 
 	
@@ -157,5 +130,14 @@ public class AIOutputService {
 			throw new BadRequestException(
 					"Lecture not indexed yet. Please process the lecture first (lectureId=" + lectureId + ").");
 		}
+	}
+	private AIOutputDTO toDTO(AI_Output a) {
+	    return new AIOutputDTO(
+	        a.getId(),
+	        a.getLecture().getId(),
+	        a.getOutputType().name(),
+	        a.getOutputContent(),
+	        a.getGeneratedAt()
+	    );
 	}
 }

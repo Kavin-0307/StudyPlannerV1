@@ -101,36 +101,43 @@ public class LectureService {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		User user = currentUserService.getCurrentUser();
 		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
-		String filePath=lecture.getFilePath();
+		
 		String extractedText="";
 		try {
-			extractedText = pdfExtractionService.extractText(filePath);
+			extractedText = pdfExtractionService.extractText(lecture.getFilePath());
 		} catch (Exception e) {
-			
-			e.printStackTrace();
 			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
 			}
-		// 1. ML CALL (NO DB)
-		AIResponseDTO response = aiOutputService.generateAIOutputsForLecture(extractedText);
-
-		// 2. DB UPDATE
-		LectureResponseDTO result = markProcessed(lectureId, extractedText);
-
-		// reload updated lecture (IMPORTANT)
-		Lecture updatedLecture = lectureRepository.findById(lectureId)
-		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-
-		// 3. SAVE OUTPUTS
-		aiOutputService.saveAIOutputs(updatedLecture, response);
-
-		// 4. CREATE REVISION
-		revisionService.createRevisionSchedule(updatedLecture);
-
-		// 5. INDEX
-		aiOutputService.indexLecture(extractedText, lectureId);
-
+		
+		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
+		LectureResponseDTO result=persistProcessingResults(lectureId, extractedText,response);
+		try {
+	        aiOutputService.indexLecture(extractedText, lectureId);
+	    } catch (Exception e) {
+	        logger.error("Indexing failed for lecture {}", lectureId, e);
+	    }
 		return result;
-	}@Transactional
+	}
+	@Transactional
+	public LectureResponseDTO persistProcessingResults(
+	        long lectureId,
+	        String extractedText,
+	        AIResponseDTO response) {
+
+	    LectureResponseDTO result = markProcessed(lectureId, extractedText);
+
+	    Lecture updatedLecture = lectureRepository.findById(lectureId)
+	        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
+	    aiOutputService.saveAIOutputs(updatedLecture, response);
+
+	    revisionService.createRevisionSchedule(updatedLecture);
+
+	    return result;
+	}
+	
+	
+	@Transactional
 	
 	// ============== DELETE ==============
 	public void deleteLecture(long lectureId) {

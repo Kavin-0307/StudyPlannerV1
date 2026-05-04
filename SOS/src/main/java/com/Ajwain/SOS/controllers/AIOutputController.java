@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.Ajwain.SOS.dto.AIOutputDTO;
 import com.Ajwain.SOS.dto.LectureQueryRequest;
 import com.Ajwain.SOS.dto.QueryResultDTO;
 import com.Ajwain.SOS.entities.AI_Output;
@@ -28,7 +29,7 @@ public class AIOutputController {
     }
 
     @GetMapping("/lecture/{lectureId}")
-    public ResponseEntity<List<AI_Output>> getAllOutputs(@PathVariable Long lectureId) {
+    public ResponseEntity<List<AIOutputDTO>> getAllOutputs(@PathVariable Long lectureId) {
 
         return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
     }
@@ -37,18 +38,18 @@ public class AIOutputController {
         return ResponseEntity.ok(aiOutputService.queryLecture(request.question(),request.lectureId()));
     }
     @GetMapping("/lecture/{lectureId}/summary")
-    public ResponseEntity<AI_Output> getSummary(@PathVariable Long lectureId) {
+    public ResponseEntity<AIOutputDTO> getSummary(@PathVariable Long lectureId) {
 
         return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.SUMMARY));
     }
 
     @GetMapping("/lecture/{lectureId}/keywords")
-    public ResponseEntity<AI_Output> getKeywords(@PathVariable Long lectureId) {
+    public ResponseEntity<AIOutputDTO> getKeywords(@PathVariable Long lectureId) {
         return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.KEYWORDS));
     }
 
     @GetMapping("/lecture/{lectureId}/revision-sheet")
-    public ResponseEntity<AI_Output> getRevisionSheet(@PathVariable Long lectureId) {
+    public ResponseEntity<AIOutputDTO> getRevisionSheet(@PathVariable Long lectureId) {
 
         return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.REVISION_SHEET));
     }

@@ -18,6 +18,7 @@ public RedisCacheConfiguration cacheConfiguration() {
 @Bean
 public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(RedisCacheConfiguration config) {
 	return (builder)-> builder.withCacheConfiguration("subjects",config.entryTtl(Duration.ofMinutes(10))).
+			withCacheConfiguration("dashboard",config.entryTtl(Duration.ofMinutes(5))).
 			withCacheConfiguration("deadlines",config.entryTtl(Duration.ofMinutes(20))).
 			withCacheConfiguration("studyplan",config.entryTtl(Duration.ofMinutes(10)));
 }

@@ -20,6 +20,7 @@ import com.Ajwain.SOS.entities.Revision;
 import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.entities.enums.RevisionStatus;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
+import com.Ajwain.SOS.exception.UnauthorizedException;
 import com.Ajwain.SOS.repositories.RevisionRepository;
 import com.Ajwain.SOS.specifications.RevisionSpecification;
 
@@ -32,7 +33,7 @@ public class RevisionService {
 		this.currentUserService = currentUserService;
 	}
 	public void createRevisionSchedule(Lecture lecture) {
-		LocalDate processedDate=lecture.getUploadDate();
+		LocalDate processedDate=LocalDate.now();
 		List<Revision> revisionSchedule=new ArrayList<>() ;
 		int count=1;
 		int arr[]= {1,3,7,14,30};
@@ -78,11 +79,8 @@ public class RevisionService {
 	public PaginationResponseDTO<RevisionResponseDTO> getRevisionsForLecture(long lectureId,Pageable pageable){
 		pageable = validatePageable(pageable);
 		 User user = currentUserService.getCurrentUser(); 
-		Page<Revision> revision=revisionRepository.findByLectureId(lectureId, pageable);
-		 revision.getContent().forEach(r -> {
-			 assertOwnership(r.getLecture().getSubject().getUser().getId(),user.getId());
-
-	        });
+		 Page<Revision> revision = revisionRepository
+				    .findByLectureIdAndLectureSubjectUserId(lectureId, user.getId(), pageable);
 
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
@@ -147,7 +145,7 @@ public class RevisionService {
 	}
 	private void assertOwnership(long resourceOwnerId, long requesterId) {
 	    if (resourceOwnerId != requesterId) {
-	        throw new ResourceNotFoundException("Unauthorized");
+	    	throw new UnauthorizedException("Access denied");
 	    }
 	}
 	}
