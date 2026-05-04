@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,6 +14,7 @@ import com.Ajwain.SOS.dto.AIOutputDTO;
 import com.Ajwain.SOS.dto.AIRequestDTO;
 import com.Ajwain.SOS.dto.AIResponseDTO;
 import com.Ajwain.SOS.dto.IndexRequestDTO;
+import com.Ajwain.SOS.dto.QueryRequestDTO;
 import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.enums.OutputType;
@@ -45,7 +47,9 @@ public class AIOutputService {
         logger.error("Processing failed", e);
         throw new RuntimeException("AI processing failed");
     }
-}public void saveAIOutputs(Lecture lecture, AIResponseDTO response) {
+}
+	@Transactional
+	public void saveAIOutputs(Lecture lecture, AIResponseDTO response) {
 
 
     aiOutputRepository.deleteByLectureId(lecture.getId());
@@ -107,14 +111,13 @@ public class AIOutputService {
 		    throw new BadRequestException("lectureId is required");
 		}
 		String sessionId = "lecture_" + lectureId;
-		Map<String, Object> body = new HashMap<>();
-		body.put("question", question);
-		body.put("session_id", sessionId);   // BUG-02 fix: session_id was never sent
-		body.put("k", 3);
-
+		QueryRequestDTO request = new QueryRequestDTO();
+		request.setQuestion(question);
+		request.setSessionId(sessionId);
+		request.setK(3);
 		try {
 			
-			Map<String, Object> response = restTemplate.postForObject(url + "/query", body, Map.class);
+			Map<String, Object> response = restTemplate.postForObject(url + "/query", request, Map.class);
 			if (response == null || !response.containsKey("results"))
 				return List.of();
 

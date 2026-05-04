@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Subject;
 import com.Ajwain.SOS.entities.User;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
+import com.Ajwain.SOS.exception.UnauthorizedException;
 import com.Ajwain.SOS.repositories.LectureRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
 import com.Ajwain.SOS.specifications.LectureSpecification;
@@ -101,8 +103,11 @@ public class LectureService {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		User user = currentUserService.getCurrentUser();
 		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
-		
-		String extractedText="";
+		lecture.setProcessingStatus("PROCESSING");
+		lectureRepository.save(lecture);
+
+		try {
+				String extractedText="";
 		try {
 			extractedText = pdfExtractionService.extractText(lecture.getFilePath());
 		} catch (Exception e) {
@@ -111,12 +116,24 @@ public class LectureService {
 		
 		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
 		LectureResponseDTO result=persistProcessingResults(lectureId, extractedText,response);
+		boolean indexed = false;
+
 		try {
-	        aiOutputService.indexLecture(extractedText, lectureId);
-	    } catch (Exception e) {
-	        logger.error("Indexing failed for lecture {}", lectureId, e);
-	    }
+		    aiOutputService.indexLecture(extractedText, lectureId);
+		    indexed = true;
+		} catch (Exception e) {
+		    logger.error("Indexing failed for lecture {}", lectureId, e);
+		}
+		lecture.setIndexed(indexed);
+		lecture.setProcessingStatus("COMPLETED");
+		lectureRepository.save(lecture);
 		return result;
+	}
+		catch (Exception e) {
+		    lecture.setProcessingStatus("FAILED");
+		    lectureRepository.save(lecture);
+		    throw e;
+		}
 	}
 	@Transactional
 	public LectureResponseDTO persistProcessingResults(
@@ -245,8 +262,12 @@ public class LectureService {
 	}
 	private void assertOwnership(long resourceOwnerId, long requesterId) {
 	    if (resourceOwnerId != requesterId) {
-	        throw new ResourceNotFoundException("Unauthorized");
+	    	throw new UnauthorizedException("Access denied");
 	    }
+	}
+	@Async
+	public void processLectureAsync(long lectureId) {
+	    processLecture(lectureId);
 	}
 	private Pageable validatePageable(Pageable pageable) {
 	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
@@ -260,6 +281,6 @@ public class LectureService {
 	}
 
 	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
-		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText());
+		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText(),lecture.isIndexed());
 	}
 }

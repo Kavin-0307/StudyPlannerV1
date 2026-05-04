@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.security.Keys;
-
+import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,6 +32,12 @@ public class JwtService {
             .setExpiration(new Date(System.currentTimeMillis() + expiryMs))
             .signWith(getSignKey(), SignatureAlgorithm.HS256)
             .compact();
+    }
+    @PostConstruct
+    public void validateSecret() {
+        if (secret == null || secret.getBytes().length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 bytes long");
+        }
     }
 
     public Key getSignKey() {

@@ -35,7 +35,24 @@ public class Lecture {
 	protected void onCreate(){
 	    uploadDate = LocalDate.now();
 	}
+	@Column(name="indexed", nullable=false)
+	private boolean indexed = false;
+	public boolean isIndexed() {
+	    return indexed;
+	}
+	@Column(name="status")
+	private String processingStatus = "PENDING";
 	
+	public void setProcessingStatus(String processingStatus) {
+		this.processingStatus=processingStatus;
+	}
+	public String getProcessingStatus() {
+		return processingStatus;
+	}
+
+	public void setIndexed(boolean indexed) {
+	    this.indexed=indexed;
+	}
 	public long getId() {
 		return id;
 	}

@@ -24,6 +24,15 @@ public class GlobalExceptionHandler {
 
 		return error;
 	}
+	@ExceptionHandler(UnauthorizedException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public Map<String, Object> handleUnauthorized(UnauthorizedException ex) {
+	    Map<String, Object> error = new HashMap<>();
+	    error.put("timestamp", LocalDateTime.now());
+	    error.put("status", 403);
+	    error.put("error", ex.getMessage());
+	    return error;
+	}
 
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

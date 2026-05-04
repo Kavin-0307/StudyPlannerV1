@@ -36,8 +36,8 @@ public class LectureController {
     @PostMapping("/{lectureId}/process")
     public ResponseEntity<?> processLecture(@PathVariable Long lectureId) {
     	try {
-    		LectureResponseDTO response =lectureService.processLecture(lectureId);
-    		return ResponseEntity.ok(response);
+    		lectureService.processLectureAsync(lectureId);
+    		return ResponseEntity.ok(Map.of("status", "Processing started"));
     		}
         catch(RuntimeException e){
         	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",e.getMessage()));

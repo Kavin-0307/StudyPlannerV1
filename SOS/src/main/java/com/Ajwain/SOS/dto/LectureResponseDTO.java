@@ -8,5 +8,5 @@ public record LectureResponseDTO(
         String filePath,
         boolean processed,
         LocalDate uploadDate
-        ,String lectureText
+        ,String lectureText,boolean indexed
 ) {}
