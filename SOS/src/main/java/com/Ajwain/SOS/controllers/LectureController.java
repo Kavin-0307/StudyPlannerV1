@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.Ajwain.SOS.auth.CurrentUserService;
 import com.Ajwain.SOS.dto.LectureRequestDTO;
 import com.Ajwain.SOS.dto.LectureResponseDTO;
 import com.Ajwain.SOS.dto.LectureSearchCriteria;
@@ -20,9 +21,10 @@ import com.Ajwain.SOS.services.LectureService;
 public class LectureController {
 
     private final LectureService lectureService;
-
-    public LectureController(LectureService lectureService) {
+    private final CurrentUserService currentUserService;
+    public LectureController(LectureService lectureService,CurrentUserService currentUserService) {
         this.lectureService = lectureService;
+        this.currentUserService = currentUserService;
     }
 
     // ================= CREATE =================
@@ -36,7 +38,8 @@ public class LectureController {
     @PostMapping("/{lectureId}/process")
     public ResponseEntity<?> processLecture(@PathVariable Long lectureId) {
     	try {
-    		lectureService.processLectureAsync(lectureId);
+    		Long userId=currentUserService.getCurrentUserId();
+    		lectureService.processLectureAsync(lectureId,userId);
     		return ResponseEntity.ok(Map.of("status", "Processing started"));
     		}
         catch(RuntimeException e){

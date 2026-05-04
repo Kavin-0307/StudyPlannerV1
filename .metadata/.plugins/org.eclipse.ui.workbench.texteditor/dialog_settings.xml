@@ -4,23 +4,24 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
-			<item value="getPending"/>
-			<item value="do"/>
-			<item value="docm"/>
-			<item value="saveAiOutput"/>
-			<item value="generateAiOutputs"/>
-			<item value="generate"/>
-			<item value="mark"/>
-			<item value="processLe"/>
+			<item value="/index"/>
+			<item value="Long userId"/>
+			<item value="Asyn"/>
+			<item value="processLecture"/>
+			<item value="Lecture lecture = lectureRepository.findById(lectureId)"/>
 			<item value="proc"/>
-			<item value="lectures"/>
-			<item value="(Revision) revisi"/>
-			<item value="(Revision)"/>
-			<item value="String time"/>
-			<item value="pdfEx"/>
-			<item value="if(st"/>
+			<item value="processLe"/>
+			<item value=".proc"/>
+			<item value="Async"/>
+			<item value="async"/>
+			<item value="@A"/>
+			<item value="persis"/>
+			<item value="processLect"/>
+			<item value="processLectur"/>
+			<item value="aiOutputService.in"/>
 		</list>
 		<list key="replacehistory">
+			<item value="AIOutputDTO"/>
 			<item value="cacheConfiguration"/>
 			<item value="userEntity"/>
 			<item value="pageable=validatePageable(pageable);"/>

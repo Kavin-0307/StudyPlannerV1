@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.Ajwain.SOS.entities.Lecture;
@@ -22,6 +23,13 @@ public interface LectureRepository extends JpaRepository<Lecture,Long> ,JpaSpeci
 	List<Lecture> findBySubjectIdAndProcessedTrue(long subjectId);
 	Long countBySubject_UserAndProcessedTrue(User user);
 	Long countBySubject_UserAndProcessedFalse(User user);
+	@Query("""
+			SELECT l FROM Lecture l
+			JOIN FETCH l.subject s
+			JOIN FETCH s.user
+			WHERE l.id = :lectureId
+			""")
+			Optional<Lecture> findByIdWithSubjectAndUser(@Param("lectureId") Long lectureId);
 	
 	Page<Lecture> findBySubjectId(long subjectId,Pageable pageable);
 	Page<Lecture> findBySubjectUserId(long userId,Pageable pageable);

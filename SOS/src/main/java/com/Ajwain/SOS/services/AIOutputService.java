@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 
 import com.Ajwain.SOS.dto.AIOutputDTO;
 import com.Ajwain.SOS.dto.AIRequestDTO;
@@ -42,7 +46,18 @@ public class AIOutputService {
     processRequest.setText(lectureText);
 
     try {
-        return restTemplate.postForObject(url + "/process", processRequest, AIResponseDTO.class);
+    	HttpHeaders headers = new HttpHeaders();
+    	headers.setContentType(MediaType.APPLICATION_JSON);
+
+    	HttpEntity<AIRequestDTO> request = new HttpEntity<>(processRequest, headers);
+
+    	ResponseEntity<AIResponseDTO> response = restTemplate.postForEntity(
+    	        url + "/process",
+    	        request,
+    	        AIResponseDTO.class
+    	);
+
+    	return response.getBody();
     } catch (Exception e) {
         logger.error("Processing failed", e);
         throw new RuntimeException("AI processing failed");
@@ -61,7 +76,12 @@ public class AIOutputService {
     IndexRequestDTO indexRequest = new IndexRequestDTO(lectureText, sessionId);
 
     try {
-        restTemplate.postForObject(url + "/index", indexRequest, Map.class);
+    	HttpHeaders headers = new HttpHeaders();
+    	headers.setContentType(MediaType.APPLICATION_JSON);
+
+    	HttpEntity<IndexRequestDTO> request = new HttpEntity<>(indexRequest, headers);
+
+    	restTemplate.postForEntity(url + "/index", request, Map.class);
     } catch (Exception e) {
         throw new RuntimeException("Indexing failed");
     }

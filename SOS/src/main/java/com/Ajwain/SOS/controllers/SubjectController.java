@@ -21,8 +21,6 @@ public class SubjectController {
 	public SubjectController(SubjectService subjectService) {
 		this.subjectService = subjectService;
 	}
-
-	// CREATE — userId now comes from the JWT, not the URL
 	@PostMapping
 	public ResponseEntity<SubjectResponseDTO> createSubject(@Valid @RequestBody SubjectRequestDTO dto) {
 

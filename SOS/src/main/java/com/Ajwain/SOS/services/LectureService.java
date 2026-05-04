@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.cache.annotation.Cacheable;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +32,7 @@ import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.exception.UnauthorizedException;
 import com.Ajwain.SOS.repositories.LectureRepository;
 import com.Ajwain.SOS.repositories.SubjectRepository;
+import com.Ajwain.SOS.repositories.UserRepository;
 import com.Ajwain.SOS.specifications.LectureSpecification;
 import com.Ajwain.SOS.storage.FileStorageService;
 
@@ -43,11 +44,13 @@ public class LectureService {
 	private final AIOutputService aiOutputService;
 	private final FileStorageService fileStorageService;
 	private final  CurrentUserService currentUserService;
+	private final UserRepository userRepository;
 	private final Logger logger=LoggerFactory.getLogger(LectureService.class);
 	private final RevisionService revisionService;
 	private final PdfExtractionService pdfExtractionService;
-	public LectureService(RevisionService revisionService, AIOutputService aiOutputService, LectureRepository lectureRepository, SubjectRepository subjectRepository, FileStorageService fileStorageService, CurrentUserService currentUserService, PdfExtractionService pdfExtractionService)
+	public LectureService(UserRepository userRepository,RevisionService revisionService, AIOutputService aiOutputService, LectureRepository lectureRepository, SubjectRepository subjectRepository, FileStorageService fileStorageService, CurrentUserService currentUserService, PdfExtractionService pdfExtractionService)
 	{
+		this.userRepository=userRepository;
 		this.currentUserService = currentUserService;
 		this.revisionService=revisionService;
 		this.aiOutputService=aiOutputService;
@@ -99,9 +102,9 @@ public class LectureService {
 
 	    return convertToResponseDTO(lectureRepository.save(lecture));
 	}
-	
+	@Transactional
 	public LectureResponseDTO processLecture(long lectureId) {
-		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
+		Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		User user = currentUserService.getCurrentUser();
 		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
 		lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
@@ -143,6 +146,54 @@ public class LectureService {
 		    throw e;
 		}
 	}
+	
+	public LectureResponseDTO processLecture(long lectureId,Long userId) {
+		Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId)
+		        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+		    
+		    User user = userRepository.findById(userId)
+		        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
+		lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
+		lectureRepository.save(lecture);
+
+		try {
+				String extractedText="";
+		try {
+			extractedText = pdfExtractionService.extractText(lecture.getFilePath());
+		} catch (Exception e) {
+			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
+			}
+		
+		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
+		persistProcessingResults(lectureId, extractedText, response);
+
+		Lecture fresh = lectureRepository.findById(lectureId)
+		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
+		boolean indexed = false;
+
+		try {
+		    aiOutputService.indexLecture(extractedText, lectureId);
+		    indexed = true;
+		} catch (Exception e) {
+		    logger.error("Indexing failed for lecture {}", lectureId, e);
+		}
+
+		fresh.setIndexed(indexed);
+		fresh.setProcessingStatus(ProcessingStatus.COMPLETED);
+
+		lectureRepository.save(fresh);
+
+		return convertToResponseDTO(fresh);
+		}
+		catch (Exception e) {
+		    lecture.setProcessingStatus(ProcessingStatus.FAILED);
+		    lectureRepository.save(lecture);
+		    throw e;
+		}
+	}
+
 	@Transactional
 	public LectureResponseDTO persistProcessingResults(
 	        long lectureId,
@@ -274,8 +325,12 @@ public class LectureService {
 	    }
 	}
 	@Async
-	public void processLectureAsync(long lectureId) {
-	    processLecture(lectureId);
+	public void processLectureAsync(long lectureId,Long userId) {
+	    try {
+	        processLecture(lectureId,userId);
+	    } finally {
+	        currentUserService.clear(); 
+	    }
 	}
 	private Pageable validatePageable(Pageable pageable) {
 	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {
@@ -289,6 +344,6 @@ public class LectureService {
 	}
 
 	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
-		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText(),lecture.isIndexed());
+		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText(),lecture.isIndexed(),lecture.getProcessingStatus());
 	}
 }

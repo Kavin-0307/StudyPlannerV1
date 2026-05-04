@@ -21,8 +21,6 @@ public class AuthController {
         this.userRepository=userRepository;
         this.jwtService=jwtService;
     }
-
-    // 🔐 REGISTER
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(
             @RequestBody RegisterRequestDTO dto) {
@@ -30,7 +28,6 @@ public class AuthController {
         AuthResponseDTO response = authService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
- // In AuthController
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDTO> refresh(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -53,7 +50,6 @@ public class AuthController {
             throw new BadRequestException("Invalid token");
         }
     }
-    // 🔐 LOGIN
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(
             @RequestBody LoginRequestDTO dto) {

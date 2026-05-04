@@ -2,6 +2,8 @@ package com.Ajwain.SOS.dto;
 
 import java.time.LocalDate;
 
+import com.Ajwain.SOS.entities.enums.ProcessingStatus;
+
 public record LectureResponseDTO(
         Long id,
         Long subjectId,
@@ -9,4 +11,5 @@ public record LectureResponseDTO(
         boolean processed,
         LocalDate uploadDate
         ,String lectureText,boolean indexed
+        ,ProcessingStatus processingStatus
 ) {}
