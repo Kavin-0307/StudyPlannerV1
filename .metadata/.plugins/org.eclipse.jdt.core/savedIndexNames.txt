@@ -20,7 +20,6 @@ INDEX VERSION 1.134+C:\Users\Kavin\StudyPlannerV1\.metadata\.plugins\org.eclipse
 3392478417.index
 742360382.index
 3515682207.index
-1273408619.index
 2891955197.index
 3123142191.index
 2520094961.index

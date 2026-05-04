@@ -17,25 +17,26 @@ public class CurrentUserService {
     public CurrentUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
+    private final ThreadLocal<User> currentUserCache = new ThreadLocal<>();
     public User getCurrentUser() {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResourceNotFoundException("No authenticated user found");
+        if(currentUserCache.get()!=null) {
+            return currentUserCache.get();
         }
 
-        Object principal = authentication.getPrincipal();
-
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null||!authentication.isAuthenticated()) {
+            throw new ResourceNotFoundException("No authenticated user found");
+        }
+        Object principal=authentication.getPrincipal();
         if (!(principal instanceof UserDetails userDetails)) {
             throw new ResourceNotFoundException("Invalid authentication context");
         }
-
-        String email = userDetails.getUsername(); 
-
-        return userRepository.findByUserEmail(email)
+        String email = userDetails.getUsername();
+        User user = userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        currentUserCache.set(user);
+        return user;
     }
 
     public Long getCurrentUserId() {
@@ -45,4 +46,8 @@ public class CurrentUserService {
     public String getCurrentUserEmail() {
         return getCurrentUser().getUserEmail();
     }
+
+	public void clear() {
+	    currentUserCache.remove();
+	}
 }

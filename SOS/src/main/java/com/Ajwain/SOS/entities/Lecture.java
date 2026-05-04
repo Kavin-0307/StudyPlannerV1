@@ -3,6 +3,8 @@ package com.Ajwain.SOS.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+
+import com.Ajwain.SOS.entities.enums.ProcessingStatus;
 @Entity
 @Table(name="lectures",indexes= {
 @Index(name="idx_lecture_subject",columnList="subject_id"),
@@ -40,13 +42,13 @@ public class Lecture {
 	public boolean isIndexed() {
 	    return indexed;
 	}
-	@Column(name="status")
-	private String processingStatus = "PENDING";
-	
-	public void setProcessingStatus(String processingStatus) {
+	@Enumerated(EnumType.STRING)
+	@Column(name="status", nullable = false)
+	private ProcessingStatus processingStatus = ProcessingStatus.PENDING;
+	public void setProcessingStatus(ProcessingStatus processingStatus) {
 		this.processingStatus=processingStatus;
 	}
-	public String getProcessingStatus() {
+	public ProcessingStatus getProcessingStatus() {
 		return processingStatus;
 	}
 

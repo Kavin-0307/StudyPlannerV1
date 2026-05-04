@@ -27,6 +27,7 @@ import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.Subject;
 import com.Ajwain.SOS.entities.User;
+import com.Ajwain.SOS.entities.enums.ProcessingStatus;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.exception.UnauthorizedException;
 import com.Ajwain.SOS.repositories.LectureRepository;
@@ -103,7 +104,7 @@ public class LectureService {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		User user = currentUserService.getCurrentUser();
 		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
-		lecture.setProcessingStatus("PROCESSING");
+		lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
 		lectureRepository.save(lecture);
 
 		try {
@@ -115,7 +116,11 @@ public class LectureService {
 			}
 		
 		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
-		LectureResponseDTO result=persistProcessingResults(lectureId, extractedText,response);
+		persistProcessingResults(lectureId, extractedText, response);
+
+		Lecture fresh = lectureRepository.findById(lectureId)
+		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
 		boolean indexed = false;
 
 		try {
@@ -124,13 +129,16 @@ public class LectureService {
 		} catch (Exception e) {
 		    logger.error("Indexing failed for lecture {}", lectureId, e);
 		}
-		lecture.setIndexed(indexed);
-		lecture.setProcessingStatus("COMPLETED");
-		lectureRepository.save(lecture);
-		return result;
-	}
+
+		fresh.setIndexed(indexed);
+		fresh.setProcessingStatus(ProcessingStatus.COMPLETED);
+
+		lectureRepository.save(fresh);
+
+		return convertToResponseDTO(fresh);
+		}
 		catch (Exception e) {
-		    lecture.setProcessingStatus("FAILED");
+		    lecture.setProcessingStatus(ProcessingStatus.FAILED);
 		    lectureRepository.save(lecture);
 		    throw e;
 		}
