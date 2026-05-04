@@ -1,9 +1,20 @@
 package com.Ajwain.SOS.dto;
-
-/**
- * DTO for the AI query endpoint POST /api/ai-output/query.
- * Replaces the brittle @RequestBody String pattern.
- * lectureId is used to reconstruct the session_id ("lecture_" + lectureId)
- * that was used when the lecture was indexed.
- */
-public record QueryRequestDTO(String question, Long lectureId) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+public class QueryRequestDTO {
+	private String question;
+	@JsonProperty("session_id")
+	private String sessionId;
+	private int k=3;
+	public void setQuestion(String question) {
+		this.question=question;
+	}
+	public void setSessionId(String sessionId) {
+		this.sessionId=sessionId;
+		
+	}
+	public String getQuestion() {return question;}
+	public String getSessionId() {return sessionId;}
+	
+	public int getK() { return k; }
+    public void setK(int k) { this.k = k; }
+}

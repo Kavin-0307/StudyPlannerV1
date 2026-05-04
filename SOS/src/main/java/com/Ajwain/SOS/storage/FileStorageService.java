@@ -68,12 +68,8 @@ public class FileStorageService {
 				throw new BadRequestException("Invalid file type");
 			}
 			Path subjectDirectory=createSubjectDirectory(subjectId);
-			
-			 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-		     // SEC-03: never use the original filename in the filesystem path — UUID only.
-		     // Original name is for display only; persist it in the DB if needed.
-		     String storedFilename = subjectId + "_" + timestamp + "_" + UUID.randomUUID() + ".pdf";
-		     Path targetLocation = subjectDirectory.resolve(storedFilename);
+			String newFilename = UUID.randomUUID().toString() + ".pdf";
+			Path targetLocation = subjectDirectory.resolve(newFilename);
 			Files.copy(file.getInputStream(),targetLocation ,StandardCopyOption.REPLACE_EXISTING);
 			return targetLocation;
 			
@@ -123,8 +119,8 @@ public class FileStorageService {
 	    Path processedDir = directoryPath.resolve("processed");
 	    Files.createDirectories(processedDir);
 
-	    String uniqueName = UUID.randomUUID().toString() + "_" + filePath.getFileName();
-	    Path target = processedDir.resolve(uniqueName);
+	    String uniqueName=UUID.randomUUID().toString() + "_" + filePath.getFileName();
+	    Path target=processedDir.resolve(uniqueName);
 
 	    Files.move(filePath, target, StandardCopyOption.REPLACE_EXISTING);
 	    return target;

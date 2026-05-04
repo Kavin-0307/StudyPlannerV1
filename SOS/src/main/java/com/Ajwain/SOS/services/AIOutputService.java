@@ -21,9 +21,10 @@ import com.Ajwain.SOS.repositories.AIOutputRepository;
 @Service
 public class AIOutputService {
 	private final AIOutputRepository aiOutputRepository;
-	@Value("${docmind.api.url:http://127.0.0.1:8000/api}")
+	@Value("${docmind.url:http://127.0.0.1:8000/api}")
 	private String url;
 	private final RestTemplate restTemplate;
+	
 	private final Logger logger = LoggerFactory.getLogger(AIOutputService.class);
 
 	public AIOutputService(AIOutputRepository aiOutputRepository, RestTemplate restTemplate) {
@@ -31,32 +32,35 @@ public class AIOutputService {
 		this.restTemplate = restTemplate;
 	}
 
-	/**
-	 * Calls /api/process then /api/index on the ML service.
-	 * session_id is derived deterministically as "lecture_" + lecture.getId()
-	 * so it can be reconstructed at query time without extra storage.
-	 */
+	
+	
 	public void generateAIOutputsForLecture(Lecture lecture, String lectureText) {
 		String sessionId = "lecture_" + lecture.getId();
 
-		// Step 1: process text → keywords, summary, important_points, revision_sheet
 		AIRequestDTO processRequest = new AIRequestDTO();
 		processRequest.setText(lectureText);
 
-		AIResponseDTO response = restTemplate.postForObject(url + "/process", processRequest, AIResponseDTO.class);
+		AIResponseDTO response=null ;
+		try {
+		response=restTemplate.postForObject(url + "/process", processRequest, AIResponseDTO.class);
+		}
+		catch(Exception e){
+			logger.error("Processing failed for lecture{}",lecture.getId(),e);
+			throw new RuntimeException("AI processing failed");
+		}
+		
 		if (response != null)
 			saveAIOutput(lecture, response);
-
-		// Step 2: build FAISS index for Q&A — session_id is now included (BUG-01 fix)
 		IndexRequestDTO indexRequest = new IndexRequestDTO(lectureText, sessionId);
 		try {
-			restTemplate.postForObject(url + "/index", indexRequest, java.util.Map.class);
-			logger.info("Lecture {} indexed successfully with session_id={}", lecture.getId(), sessionId);
-		} catch (HttpClientErrorException e) {
-			// Log but do not re-throw — AI outputs are already saved; indexing failure
-			// should not roll back the successful /process step.
-			logger.error("Indexing failed for lecture {} (session_id={}): {} — {}",
-					lecture.getId(), sessionId, e.getStatusCode(), e.getResponseBodyAsString());
+		    restTemplate.postForObject(url + "/index", indexRequest, Map.class);
+		    logger.info("Lecture indexed successfully");
+		} catch (Exception e) {
+		    logger.error("Indexing FAILED for lecture {}", lecture.getId(), e);
+
+		    throw new RuntimeException(
+		        "Indexing failed. Lecture processing aborted. Please retry."
+		    );
 		}
 	}
 
@@ -99,7 +103,13 @@ public class AIOutputService {
 	 * session_id is reconstructed from lectureId — matches what was used at index time.
 	 * Throws BadRequestException (→ HTTP 400) if the lecture has not been indexed yet.
 	 */
-	public List<String> queryLecture(String question, Long lectureId) {
+	public List<Map<String,Object>> queryLecture(String question, Long lectureId) {
+		if (question == null || question.isBlank()) {
+		    throw new BadRequestException("Question cannot be empty");
+		}
+		if (lectureId == null) {
+		    throw new BadRequestException("lectureId is required");
+		}
 		String sessionId = "lecture_" + lectureId;
 		Map<String, Object> body = new HashMap<>();
 		body.put("question", question);
@@ -107,15 +117,19 @@ public class AIOutputService {
 		body.put("k", 3);
 
 		try {
+			
 			Map<String, Object> response = restTemplate.postForObject(url + "/query", body, Map.class);
 			if (response == null || !response.containsKey("results"))
 				return List.of();
 
 			@SuppressWarnings("unchecked")
 			List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
-			return results.stream()
-					.map(r -> (String) r.get("text"))
-					.toList();
+			return results.stream().map(r->{Map<String,Object> item=new HashMap<>();
+											item.put("text", r.get("text"));
+											item.put("score", r.get("score"));
+											item.put("rank", r.get("rank"));
+											return item;
+			}).toList();
 		} catch (HttpClientErrorException e) {
 			throw new BadRequestException(
 					"Lecture not indexed yet. Please process the lecture first (lectureId=" + lectureId + ").");

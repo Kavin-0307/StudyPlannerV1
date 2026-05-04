@@ -2,6 +2,7 @@ package com.Ajwain.SOS.controllers;
 
 import java.time.LocalDate;
 
+import java.util.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,23 +27,21 @@ public class LectureController {
 
     // ================= CREATE =================
     @PostMapping(value = "/{subjectId}", consumes = {"multipart/form-data"})
-    public ResponseEntity<LectureResponseDTO> createLecture(
-            @PathVariable Long subjectId,
-            @RequestPart("file") MultipartFile file,
-            @RequestPart("dto") LectureRequestDTO dto) {
+    public ResponseEntity<LectureResponseDTO> createLecture(@PathVariable Long subjectId,@RequestPart("file") MultipartFile file,@RequestPart("dto") LectureRequestDTO dto) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(lectureService.createLecture(file, subjectId, dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(lectureService.createLecture(file, subjectId, dto));
     }
 
     // ================= PROCESS =================
     @PostMapping("/{lectureId}/process")
-    public ResponseEntity<LectureResponseDTO> processLecture(
-            @PathVariable Long lectureId) {
-
-        return ResponseEntity.ok(
-                lectureService.processLecture(lectureId)
-        );
+    public ResponseEntity<?> processLecture(@PathVariable Long lectureId) {
+    	try {
+    		LectureResponseDTO response =lectureService.processLecture(lectureId);
+    		return ResponseEntity.ok(response);
+    		}
+        catch(RuntimeException e){
+        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",e.getMessage()));
+        }
     }
 
     // ================= DELETE =================

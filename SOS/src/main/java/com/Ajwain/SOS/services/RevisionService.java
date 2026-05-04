@@ -53,9 +53,7 @@ public class RevisionService {
 	public RevisionResponseDTO markRevisionCompleted(Long revisionId) {
 		 User user = currentUserService.getCurrentUser(); 
 		Revision revision=revisionRepository.findById(revisionId).orElseThrow(()->new ResourceNotFoundException("Revision not found"));
-		 if (revision.getLecture().getSubject().getUser().getId()!=(user.getId())) {
-	            throw new ResourceNotFoundException("Unauthorized");
-	        }
+		 assertOwnership(revision.getLecture().getSubject().getUser().getId(),user.getId());
 		revision.setCompleted(RevisionStatus.COMPLETED);
 		revisionRepository.save(revision);
 		return convertToResponseDTO(revision);
@@ -82,9 +80,8 @@ public class RevisionService {
 		 User user = currentUserService.getCurrentUser(); 
 		Page<Revision> revision=revisionRepository.findByLectureId(lectureId, pageable);
 		 revision.getContent().forEach(r -> {
-	            if (r.getLecture().getSubject().getUser().getId()!=(user.getId())) {
-	                throw new ResourceNotFoundException("Unauthorized");
-	            }
+			 assertOwnership(((Revision) revision).getLecture().getSubject().getUser().getId(),user.getId());
+
 	        });
 
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
@@ -147,5 +144,10 @@ public class RevisionService {
 	        );
 	    }
 	    return pageable;
+	}
+	private void assertOwnership(long resourceOwnerId, long requesterId) {
+	    if (resourceOwnerId != requesterId) {
+	        throw new ResourceNotFoundException("Unauthorized");
+	    }
 	}
 	}

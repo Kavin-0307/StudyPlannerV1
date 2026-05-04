@@ -16,49 +16,45 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/subjects")
 public class SubjectController {
 
-    private final SubjectService subjectService;
+	private final SubjectService subjectService;
 
-    public SubjectController(SubjectService subjectService) {
-        this.subjectService = subjectService;
-    }
+	public SubjectController(SubjectService subjectService) {
+		this.subjectService = subjectService;
+	}
 
-    // CREATE — userId now comes from the JWT, not the URL
-    @PostMapping
-    public ResponseEntity<SubjectResponseDTO> createSubject(
-            @Valid @RequestBody SubjectRequestDTO dto) {
+	// CREATE — userId now comes from the JWT, not the URL
+	@PostMapping
+	public ResponseEntity<SubjectResponseDTO> createSubject(@Valid @RequestBody SubjectRequestDTO dto) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(subjectService.createSubject(dto));
-    }
+		return ResponseEntity.status(HttpStatus.CREATED).body(subjectService.createSubject(dto));
+	}
 
-    // UPDATE
-    @PutMapping("/{subjectId}")
-    public ResponseEntity<SubjectResponseDTO> updateSubject(
-            @PathVariable Long subjectId,
-            @Valid @RequestBody SubjectRequestDTO dto) {
+	// UPDATE
+	@PutMapping("/{subjectId}")
+	public ResponseEntity<SubjectResponseDTO> updateSubject(@PathVariable Long subjectId,
+			@Valid @RequestBody SubjectRequestDTO dto) {
 
-        return ResponseEntity.ok(subjectService.updateSubject(subjectId, dto));
-    }
+		return ResponseEntity.ok(subjectService.updateSubject(subjectId, dto));
+	}
 
-    // GET — userId now comes from the JWT, not a query param
-    @GetMapping
-    public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
-        return subjectService.getSubjects(pageable);
-    }
+	// GET — userId now comes from the JWT, not a query param
+	@GetMapping
+	public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
+		return subjectService.getSubjects(pageable);
+	}
 
-    // DELETE
-    @DeleteMapping("/{subjectId}")
-    public ResponseEntity<Void> deleteSubject(@PathVariable Long subjectId) {
-        subjectService.deleteSubject(subjectId);
-        return ResponseEntity.noContent().build();
-    }
+	// DELETE
+	@DeleteMapping("/{subjectId}")
+	public ResponseEntity<Void> deleteSubject(@PathVariable Long subjectId) {
+		subjectService.deleteSubject(subjectId);
+		return ResponseEntity.noContent().build();
+	}
 
-    // SEARCH — scoped to the current user
-    @GetMapping("/search")
-    public ResponseEntity<PaginationResponseDTO<SubjectResponseDTO>> searchSubjects(
-            @RequestParam String keyword,
-            Pageable pageable) {
+	// SEARCH — scoped to the current user
+	@GetMapping("/search")
+	public ResponseEntity<PaginationResponseDTO<SubjectResponseDTO>> searchSubjects(@RequestParam String keyword,
+			Pageable pageable) {
 
-        return ResponseEntity.ok(subjectService.searchSubjects(keyword, pageable));
-    }
+		return ResponseEntity.ok(subjectService.searchSubjects(keyword, pageable));
+	}
 }

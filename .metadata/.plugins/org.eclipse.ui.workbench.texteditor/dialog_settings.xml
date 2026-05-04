@@ -4,6 +4,8 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="@PostMapping(&quot;"/>
+			<item value="/proc"/>
 			<item value="StudyP"/>
 			<item value="getUpd"/>
 			<item value="response.i"/>
@@ -17,8 +19,6 @@
 			<item value="getToday"/>
 			<item value="cache"/>
 			<item value="updat"/>
-			<item value="delete"/>
-			<item value="dele"/>
 		</list>
 		<list key="replacehistory">
 			<item value="cacheConfiguration"/>

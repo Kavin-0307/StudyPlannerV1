@@ -3,7 +3,7 @@ package com.Ajwain.SOS.entities;
 import java.time.LocalDateTime;
 
 import com.Ajwain.SOS.entities.enums.OutputType;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -47,6 +47,7 @@ public class AI_Output {
 	public void setOutputType(OutputType aiOutputType) {
 		this.aiOutputType=aiOutputType;
 	}
+	@JsonProperty("outputType")
 	public OutputType getOutputType() {
 		return aiOutputType;
 	}

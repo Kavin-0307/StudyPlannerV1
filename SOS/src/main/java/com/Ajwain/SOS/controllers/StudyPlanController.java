@@ -29,6 +29,10 @@ public class StudyPlanController {
 	public StudyPlanController(StudyPlanService studyPlanService) {
 		this.studyPlanService=studyPlanService;
 	}
+	@PostMapping("/regenerate")
+	public ResponseEntity<List<StudyPlanResponseDTO>> regenerate() {
+	    return ResponseEntity.ok(studyPlanService.regenerateStudyPlan());
+	}
 	@PostMapping("/generate")
 	public ResponseEntity<List<StudyPlanResponseDTO>> generateStudyPlan(){
 		return ResponseEntity.status(HttpStatus.CREATED).body(studyPlanService.generateStudyPlan());

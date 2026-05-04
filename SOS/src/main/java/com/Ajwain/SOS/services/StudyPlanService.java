@@ -154,10 +154,7 @@ public class StudyPlanService {
 	    User user=currentUserService.getCurrentUser();
 	    if(!plan.getUser().equals(user))
 	    	throw new ResourceNotFoundException("Unauthorized");
-	    	
-	    if(status == StudyStatus.MISSED) {
-	        regenerateStudyPlan();
-	    }
+
 	    plan.setStudyStatus(status);
 
 	    studyPlanRepository.save(plan);
@@ -166,7 +163,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id + ':today'"
+			  key ="'today:'+#root.target.currentUserService.getCurrentUser().id "
 			)
 	public List<StudyPlanResponseDTO> getTodayPlan(){
 		User user=currentUserService.getCurrentUser();
@@ -174,7 +171,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id + ':all'"
+			  key = "'all:'+#root.target.currentUserService.getCurrentUser().id "
 			)
 	public List<StudyPlanResponseDTO> getStudyPlanByUser() {
 		 User user = currentUserService.getCurrentUser(); // ✅ FIX
@@ -215,7 +212,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id + ':page:' + #pageable.pageNumber"
+			  key = "'page:'+#root.target.currentUserService.getCurrentUser().id +':' + #pageable.pageNumber"
 			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(Pageable pageable) {
 
@@ -229,7 +226,7 @@ public class StudyPlanService {
 	}
 	@Cacheable(
 			  value = "studyplan",
-			  key = "#root.target.currentUserService.getCurrentUser().id + ':today-page:' + #pageable.pageNumber"
+			  key = "'today-page:'+#root.target.currentUserService.getCurrentUser().id + ':' + #pageable.pageNumber"
 			)
 	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
 	    User user = currentUserService.getCurrentUser(); 

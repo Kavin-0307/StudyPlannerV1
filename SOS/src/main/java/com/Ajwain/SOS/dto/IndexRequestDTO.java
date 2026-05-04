@@ -1,19 +1,19 @@
 package com.Ajwain.SOS.dto;
 
-/**
- * DTO for the DocMind /api/index endpoint.
- * Requires both text content and a stable session_id so FAISS can key the index.
- * Convention: session_id = "lecture_" + lecture.getId()
- */
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class IndexRequestDTO {
     private String text;
-    private String session_id;
-
+    @JsonProperty("session_id")
+    private String sessionId;
+    public IndexRequestDTO(){}
+    
     public IndexRequestDTO(String text, String sessionId) {
         this.text = text;
-        this.session_id = sessionId;
+        this.sessionId = sessionId;
     }
-
+    public void setText(String text) {this.text=text;}
     public String getText() { return text; }
-    public String getSession_id() { return session_id; }
+    public void setSessionId(String sessionId) {this.sessionId=sessionId;}
+    public String getSessionId() { return sessionId; }
 }

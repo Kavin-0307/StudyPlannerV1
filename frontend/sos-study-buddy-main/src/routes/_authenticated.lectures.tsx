@@ -111,9 +111,11 @@ function LecturesPage() {
     try {
       await lectureService.process(id);
       fetchLectures();
-    } catch {
-      setError("Processing failed");
-    } finally {
+    }catch (err: any) {
+   const message =
+    err?.response?.data?.error || "Processing failed";
+  setError(message);
+} finally {
       setProcessingId(null);
     }
   };

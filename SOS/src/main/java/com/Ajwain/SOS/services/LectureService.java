@@ -32,7 +32,7 @@ import com.Ajwain.SOS.specifications.LectureSpecification;
 import com.Ajwain.SOS.storage.FileStorageService;
 
 @Service
-@Transactional
+
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final SubjectRepository subjectRepository;
@@ -52,13 +52,12 @@ public class LectureService {
 		this.subjectRepository=subjectRepository;
 		this.pdfExtractionService=pdfExtractionService;
 	}	
+	@Transactional
 	// ============== CREATE LECTURE ==============
 	public LectureResponseDTO createLecture(MultipartFile file,Long subjectId,LectureRequestDTO dto) {
 		User user=currentUserService.getCurrentUser();
 		Subject subject=subjectRepository.findById(subjectId).orElseThrow(()->new ResourceNotFoundException("Subject not found"));
-		if (subject.getUser().getId()!=(user.getId())) {
-            throw new ResourceNotFoundException("Unauthorized");
-        }
+		assertOwnership(subject.getUser().getId(),user.getId());
 
 		Lecture lecture=new Lecture();
 		lecture.setSubject(subject);
@@ -79,13 +78,12 @@ public class LectureService {
 	}
 	
 	// ============== PROCESSING THE LECTURE ==============
+	@Transactional
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
 		User user=currentUserService.getCurrentUser();
 
 	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
-	    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
-            throw new ResourceNotFoundException("Unauthorized");
-        }
+	    assertOwnership(lecture.getSubject().getUser().getId(),user.getId());
 	    try {
 	    lecture.setFilePath(fileStorageService.moveToProcessed(Paths.get(lecture.getFilePath())).toString());
 	    }catch(IOException e) {
@@ -97,13 +95,11 @@ public class LectureService {
 
 	    return convertToResponseDTO(lectureRepository.save(lecture));
 	}
+	
 	public LectureResponseDTO processLecture(long lectureId) {
 		Lecture lecture=lectureRepository.findById(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
 		User user = currentUserService.getCurrentUser();
-
-		if (lecture.getSubject().getUser().getId()!=(user.getId())) {
-		    throw new ResourceNotFoundException("Unauthorized");
-		}
+		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
 		String filePath=lecture.getFilePath();
 		String extractedText="";
 		try {
@@ -118,15 +114,14 @@ public class LectureService {
 		revisionService.createRevisionSchedule(lecture);
 
 		return markProcessed(lectureId,extractedText);
-	}
+	}@Transactional
+	
 	// ============== DELETE ==============
 	public void deleteLecture(long lectureId) {
 			User user=currentUserService.getCurrentUser();
 
 		    Lecture lecture= lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-		    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
-	            throw new ResourceNotFoundException("Unauthorized");
-	        }
+		    assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
 		    fileStorageService.deleteFile(lecture.getFilePath());
 			   
 		    lectureRepository.delete(lecture);
@@ -139,9 +134,7 @@ public class LectureService {
 		User user=currentUserService.getCurrentUser();
 
 	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
-	    if (lecture.getSubject().getUser().getId()!=(user.getId())) {
-            throw new ResourceNotFoundException("Unauthorized");
-	    }
+	    assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
 	    return convertToResponseDTO(lecture);
 	}
 	// ============== BASIC LISTS ==============
@@ -149,9 +142,8 @@ public class LectureService {
 		User user=currentUserService.getCurrentUser();
 		Subject subject = subjectRepository.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
 
-        if (subject.getUser().getId()!=(user.getId())) {
-            throw new ResourceNotFoundException("Unauthorized");
-        }
+	    assertOwnership(subject.getUser().getId(), user.getId());
+
 		return lectureRepository.findBySubjectId(subjectId).stream().map(this::convertToResponseDTO).toList();
 	}
 	public List<LectureResponseDTO> getProcessedLectures(Long subjectId) {
@@ -159,10 +151,8 @@ public class LectureService {
 
 	    Subject subject = subjectRepository.findById(subjectId)
 	        .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+	    assertOwnership(subject.getUser().getId(), user.getId());
 
-	    if (subject.getUser().getId()!=(user.getId())) { 
-	        throw new ResourceNotFoundException("Unauthorized");
-	    }
 
 	    return lectureRepository
 	            .findBySubjectIdAndProcessedTrue(subjectId)
@@ -188,9 +178,7 @@ public class LectureService {
             long subjectId, Pageable pageable) {
 		User user = currentUserService.getCurrentUser();
         Subject subject = subjectRepository.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        if (subject.getUser().getId()!=(user.getId())) {
-            throw new ResourceNotFoundException("Unauthorized");
-        }
+        assertOwnership(subject.getUser().getId(), user.getId());
         pageable=validatePageable(pageable);
         Page<Lecture> lectures = lectureRepository.findBySubject(subject, pageable);
         List<LectureResponseDTO> dtos =lectures.getContent().stream().map(this::convertToResponseDTO).toList();
@@ -235,6 +223,11 @@ public class LectureService {
 		            .and(LectureSpecification.uploadDateAfter(criteria.getFromDate()))
 		            .and(LectureSpecification.uploadDateBefore(criteria.getToDate()));
 		
+	}
+	private void assertOwnership(long resourceOwnerId, long requesterId) {
+	    if (resourceOwnerId != requesterId) {
+	        throw new ResourceNotFoundException("Unauthorized");
+	    }
 	}
 	private Pageable validatePageable(Pageable pageable) {
 	    if (pageable.getPageSize() > PaginationConfig.getMaxSize()) {

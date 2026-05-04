@@ -1,5 +1,6 @@
 package com.Ajwain.SOS.controllers;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.Ajwain.SOS.dto.QueryRequestDTO;
-
-
+import com.Ajwain.SOS.dto.LectureQueryRequest;
+import com.Ajwain.SOS.dto.QueryResultDTO;
 import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.enums.OutputType;
 import com.Ajwain.SOS.services.AIOutputService;
@@ -33,8 +33,8 @@ public class AIOutputController {
         return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
     }
     @PostMapping("/query")
-    public ResponseEntity<List<String>> queryLecture(@RequestBody QueryRequestDTO req) {
-        return ResponseEntity.ok(aiOutputService.queryLecture(req.question(), req.lectureId()));
+    public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody LectureQueryRequest request) {
+        return ResponseEntity.ok(aiOutputService.queryLecture(request.question(),request.lectureId()));
     }
     @GetMapping("/lecture/{lectureId}/summary")
     public ResponseEntity<AI_Output> getSummary(@PathVariable Long lectureId) {
