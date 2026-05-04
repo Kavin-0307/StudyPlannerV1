@@ -86,9 +86,7 @@ public class LectureService {
 	
 	// ============== PROCESSING THE LECTURE ==============
 	
-	public LectureResponseDTO markProcessed(Long lectureId, String extractedText)  {
-		User user=currentUserService.getCurrentUser();
-
+	public LectureResponseDTO markProcessed(Long lectureId, String extractedText,User user)  {
 	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
 	    assertOwnership(lecture.getSubject().getUser().getId(),user.getId());
 	    try {
@@ -104,103 +102,71 @@ public class LectureService {
 	}
 	@Transactional
 	public LectureResponseDTO processLecture(long lectureId) {
-		Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId).orElseThrow(()->new ResourceNotFoundException("Lecture not found"));
-		User user = currentUserService.getCurrentUser();
-		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
-		lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
-		lectureRepository.save(lecture);
-
-		try {
-				String extractedText="";
-		try {
-			extractedText = pdfExtractionService.extractText(lecture.getFilePath());
-		} catch (Exception e) {
-			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
-			}
-		
-		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
-		persistProcessingResults(lectureId, extractedText, response);
-
-		Lecture fresh = lectureRepository.findById(lectureId)
-		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-
-		boolean indexed = false;
-
-		try {
-		    aiOutputService.indexLecture(extractedText, lectureId);
-		    indexed = true;
-		} catch (Exception e) {
-		    logger.error("Indexing failed for lecture {}", lectureId, e);
-		}
-
-		fresh.setIndexed(indexed);
-		fresh.setProcessingStatus(ProcessingStatus.COMPLETED);
-
-		lectureRepository.save(fresh);
-
-		return convertToResponseDTO(fresh);
-		}
-		catch (Exception e) {
-		    lecture.setProcessingStatus(ProcessingStatus.FAILED);
-		    lectureRepository.save(lecture);
-		    throw e;
-		}
+	    User user = currentUserService.getCurrentUser();
+	    return processLectureInternal(lectureId, user);
 	}
-	
-	public LectureResponseDTO processLecture(long lectureId,Long userId) {
-		Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId)
-		        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-		    
-		    User user = userRepository.findById(userId)
-		        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-		assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
-		lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
-		lectureRepository.save(lecture);
-
-		try {
-				String extractedText="";
-		try {
-			extractedText = pdfExtractionService.extractText(lecture.getFilePath());
-		} catch (Exception e) {
-			throw new RuntimeException("Pdf Extraction failed"+e.getMessage()) ;
-			}
-		
-		AIResponseDTO response=aiOutputService.generateAIOutputsForLecture(extractedText);
-		persistProcessingResults(lectureId, extractedText, response);
-
-		Lecture fresh = lectureRepository.findById(lectureId)
-		    .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
-
-		boolean indexed = false;
-
-		try {
-		    aiOutputService.indexLecture(extractedText, lectureId);
-		    indexed = true;
-		} catch (Exception e) {
-		    logger.error("Indexing failed for lecture {}", lectureId, e);
-		}
-
-		fresh.setIndexed(indexed);
-		fresh.setProcessingStatus(ProcessingStatus.COMPLETED);
-
-		lectureRepository.save(fresh);
-
-		return convertToResponseDTO(fresh);
-		}
-		catch (Exception e) {
-		    lecture.setProcessingStatus(ProcessingStatus.FAILED);
-		    lectureRepository.save(lecture);
-		    throw e;
-		}
+	@Transactional
+	public LectureResponseDTO processLecture(long lectureId, Long userId) {
+	    User user = userRepository.findById(userId)
+	        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+	    return processLectureInternal(lectureId, user);
 	}
+	@Transactional
+	private LectureResponseDTO processLectureInternal(long lectureId, User user) {
 
+	    Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId)
+	        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
+	    assertOwnership(lecture.getSubject().getUser().getId(), user.getId());
+
+	    lecture.setProcessingStatus(ProcessingStatus.PROCESSING);
+	    lectureRepository.save(lecture);
+
+	    try {
+	        String extractedText;
+
+	        try {
+	            extractedText = pdfExtractionService.extractText(lecture.getFilePath());
+	        } catch (Exception e) {
+	            throw new RuntimeException("Pdf Extraction failed: " + e.getMessage());
+	        }
+
+	        AIResponseDTO response = aiOutputService.generateAIOutputsForLecture(extractedText);
+
+	        persistProcessingResults(lectureId, extractedText, response, user);
+
+	        Lecture fresh = lectureRepository.findById(lectureId)
+	            .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));
+
+	        boolean indexed = false;
+
+	        try {
+	            aiOutputService.indexLecture(extractedText, lectureId);
+	            indexed = true;
+	        } catch (Exception e) {
+	            logger.error("Indexing failed for lecture {}", lectureId, e);
+	        }
+
+	        fresh.setIndexed(indexed);
+	        fresh.setProcessingStatus(ProcessingStatus.COMPLETED);
+
+	        lectureRepository.save(fresh);
+
+	        return convertToResponseDTO(fresh);
+
+	    } catch (Exception e) {
+	        lecture.setProcessingStatus(ProcessingStatus.FAILED);
+	        lectureRepository.save(lecture);
+	        throw e;
+	    }
+	}
 	@Transactional
 	public LectureResponseDTO persistProcessingResults(
 	        long lectureId,
 	        String extractedText,
-	        AIResponseDTO response) {
+	        AIResponseDTO response,User user) {
 
-	    LectureResponseDTO result = markProcessed(lectureId, extractedText);
+	    LectureResponseDTO result = markProcessed(lectureId, extractedText,user);
 
 	    Lecture updatedLecture = lectureRepository.findById(lectureId)
 	        .orElseThrow(() -> new ResourceNotFoundException("Lecture not found"));

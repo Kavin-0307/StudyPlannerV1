@@ -31,12 +31,13 @@ public class AIOutputService {
 	@Value("${docmind.api.url:http://127.0.0.1:8000/api}")
 	private String url;
 	private final RestTemplate restTemplate;
-	
+	private final LectureService lectureService;
 	private final Logger logger = LoggerFactory.getLogger(AIOutputService.class);
 
-	public AIOutputService(AIOutputRepository aiOutputRepository, RestTemplate restTemplate) {
+	public AIOutputService(LectureService lectureService,AIOutputRepository aiOutputRepository, RestTemplate restTemplate) {
 		this.aiOutputRepository = aiOutputRepository;
 		this.restTemplate = restTemplate;
+		this.lectureService=lectureService;
 	}
 
 	
@@ -113,10 +114,12 @@ public class AIOutputService {
 	}
 
 	public List<AIOutputDTO> getOutputsForLecture(Long lectureId) {
+		lectureService.getLectureById(lectureId);
 	    return aiOutputRepository.findByLectureId(lectureId)
 	        .stream().map(this::toDTO).toList();
 	}
 	public AIOutputDTO getOutputByType(Long lectureId, OutputType type) {
+		lectureService.getLectureById(lectureId);
 		AI_Output entity=aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
 		if(entity==null)return null;
 		return toDTO(entity);
@@ -150,8 +153,14 @@ public class AIOutputService {
 											return item;
 			}).toList();
 		} catch (HttpClientErrorException e) {
-			throw new BadRequestException(
-					"Lecture not indexed yet. Please process the lecture first (lectureId=" + lectureId + ").");
+		    if (e.getStatusCode().is4xxClientError()) {
+		        throw new BadRequestException(
+		            "Document index not available. "
+		            + "The lecture was processed but the index may have been lost. "
+		            + "Please re-process the lecture (lectureId=" + lectureId + ")."
+		        );
+		    }
+		    throw new RuntimeException("Query service temporarily unavailable");
 		}
 	}
 	private AIOutputDTO toDTO(AI_Output a) {

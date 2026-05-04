@@ -3,6 +3,8 @@ package com.Ajwain.SOS.config;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import com.Ajwain.SOS.auth.CurrentUserService;
 
@@ -22,7 +24,8 @@ public class UserContextCleanupFilter implements Filter {
         try {
             chain.doFilter(request, response);
         } finally {
-            currentUserService.clear(); // 🔥 important
+            currentUserService.clear(); 
+            SecurityContextHolder.clearContext();
         }
     }
 }
