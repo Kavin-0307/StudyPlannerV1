@@ -89,8 +89,14 @@ public class LectureService {
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText,User user)  {
 	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
 	    assertOwnership(lecture.getSubject().getUser().getId(),user.getId());
+	    String originalPath=lecture.getFilePath();
+	    lecture.setLectureText(extractedText);
+	    lecture.setProcessed(true);
+	    lectureRepository.save(lecture);
 	    try {
-	    lecture.setFilePath(fileStorageService.moveToProcessed(Paths.get(lecture.getFilePath())).toString());
+	    	Path newPath=fileStorageService.moveToProcessed(Paths.get(originalPath));
+	    lecture.setFilePath(newPath.toString());
+	    lectureRepository.save(lecture);
 	    }catch(IOException e) {
 			throw new RuntimeException("File not saved");
 		}

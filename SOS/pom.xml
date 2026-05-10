@@ -85,12 +85,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!--PDF GENERATION-->
-        <dependency>
-			    <groupId>com.github.librepdf</groupId>
-			    <artifactId>openpdf</artifactId>
-			    <version>3.0.0</version>
-	 	 </dependency>
+       
 
 
         <!--JWT-->

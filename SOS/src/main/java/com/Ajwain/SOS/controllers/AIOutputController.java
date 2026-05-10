@@ -18,39 +18,52 @@ import com.Ajwain.SOS.dto.QueryResultDTO;
 import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.enums.OutputType;
 import com.Ajwain.SOS.services.AIOutputService;
+import com.Ajwain.SOS.services.LectureService;
 @RestController
 @RequestMapping("/api/ai-output")
 public class AIOutputController {
 
-    private final AIOutputService aiOutputService;
+	private final AIOutputService aiOutputService;
+	private final LectureService lectureService;
 
-    public AIOutputController(AIOutputService aiOutputService) {
-        this.aiOutputService = aiOutputService;
-    }
+	public AIOutputController(AIOutputService aiOutputService, LectureService lectureService) {
+	    this.aiOutputService = aiOutputService;
+	    this.lectureService = lectureService;
+	}
 
-    @GetMapping("/lecture/{lectureId}")
-    public ResponseEntity<List<AIOutputDTO>> getAllOutputs(@PathVariable Long lectureId) {
+	@GetMapping("/lecture/{lectureId}")
+	public ResponseEntity<List<AIOutputDTO>> getAllOutputs(@PathVariable Long lectureId) {
+	    lectureService.getLectureById(lectureId);
+	    return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
+	}
+	@PostMapping("/query")
+	public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody LectureQueryRequest request) {
 
-        return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
-    }
-    @PostMapping("/query")
-    public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody LectureQueryRequest request) {
-        return ResponseEntity.ok(aiOutputService.queryLecture(request.question(),request.lectureId()));
-    }
-    @GetMapping("/lecture/{lectureId}/summary")
-    public ResponseEntity<AIOutputDTO> getSummary(@PathVariable Long lectureId) {
+	    lectureService.getLectureById(request.lectureId());
+	    return ResponseEntity.ok(aiOutputService.queryLecture(request.question(), request.lectureId()));
+	}
+	@GetMapping("/lecture/{lectureId}/summary")
+	public ResponseEntity<AIOutputDTO> getSummary(@PathVariable Long lectureId) {
 
-        return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.SUMMARY));
-    }
+	    lectureService.getLectureById(lectureId); 
+	    return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId, OutputType.SUMMARY));
+	}
 
     @GetMapping("/lecture/{lectureId}/keywords")
     public ResponseEntity<AIOutputDTO> getKeywords(@PathVariable Long lectureId) {
+    	 lectureService.getLectureById(lectureId);
         return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.KEYWORDS));
     }
 
     @GetMapping("/lecture/{lectureId}/revision-sheet")
     public ResponseEntity<AIOutputDTO> getRevisionSheet(@PathVariable Long lectureId) {
-
+    	 lectureService.getLectureById(lectureId);
         return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId,OutputType.REVISION_SHEET));
+    }
+    
+    @GetMapping("/lecture/{lectureId}/important-points")
+    public ResponseEntity<AIOutputDTO> getImportantPoints(@PathVariable long lectureId){
+    	lectureService.getLectureById(lectureId);
+    	return ResponseEntity.ok(aiOutputService.getOutputByType(lectureId, OutputType.IMPORTANT_POINTS));
     }
 }
