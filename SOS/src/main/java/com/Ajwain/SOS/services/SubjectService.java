@@ -35,6 +35,10 @@ public class SubjectService {
         this.subjectRepository = subjectRepository;
         this.currentUserService = currentUserService;
     }
+    public CurrentUserService getCurrentUserService() {
+        return currentUserService;
+    }
+
     @CacheEvict(value={"subjects","studyplan","dashboard"},allEntries=true)
     public SubjectResponseDTO createSubject(SubjectRequestDTO dto) {
         User user = currentUserService.getCurrentUser();

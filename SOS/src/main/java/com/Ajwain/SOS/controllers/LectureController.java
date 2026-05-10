@@ -16,6 +16,8 @@ import com.Ajwain.SOS.dto.LectureSearchCriteria;
 import com.Ajwain.SOS.dto.PaginationResponseDTO;
 import com.Ajwain.SOS.services.LectureService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/lectures")
 public class LectureController {
@@ -29,7 +31,7 @@ public class LectureController {
 
     // ================= CREATE =================
     @PostMapping(value = "/{subjectId}", consumes = {"multipart/form-data"})
-    public ResponseEntity<LectureResponseDTO> createLecture(@PathVariable Long subjectId,@RequestPart("file") MultipartFile file,@RequestPart("dto") LectureRequestDTO dto) {
+    public ResponseEntity<LectureResponseDTO> createLecture(@PathVariable Long subjectId,@RequestPart("file") MultipartFile file,@Valid@RequestPart("dto") LectureRequestDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(lectureService.createLecture(file, subjectId, dto));
     }

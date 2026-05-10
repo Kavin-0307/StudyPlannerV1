@@ -6,7 +6,7 @@ import com.Ajwain.SOS.entities.enums.DeadlineType;
 
 public class DeadlineSearchCriteria {
 	private String keyword;
-	private long subjectId;
+	private Long subjectId;
 	private DeadlineType deadlineType;
 	private Integer deadlinePriority;
 	private LocalDateTime fromDate;

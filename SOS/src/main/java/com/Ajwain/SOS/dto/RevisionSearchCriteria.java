@@ -12,7 +12,7 @@ public class RevisionSearchCriteria {
     private Integer revisionNumber;
     private LocalDate fromDate;
     private LocalDate toDate;
-    public void setUserId(long userId) {
+    public void setUserId(Long userId) {
     	this.userId=userId;
     }
     public void setLectureId(long lectureId) {

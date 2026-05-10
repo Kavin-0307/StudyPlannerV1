@@ -19,6 +19,8 @@ import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.enums.OutputType;
 import com.Ajwain.SOS.services.AIOutputService;
 import com.Ajwain.SOS.services.LectureService;
+
+import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/ai-output")
 public class AIOutputController {
@@ -37,7 +39,7 @@ public class AIOutputController {
 	    return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
 	}
 	@PostMapping("/query")
-	public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody LectureQueryRequest request) {
+	public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody@Valid LectureQueryRequest request) {
 
 	    lectureService.getLectureById(request.lectureId());
 	    return ResponseEntity.ok(aiOutputService.queryLecture(request.question(), request.lectureId()));

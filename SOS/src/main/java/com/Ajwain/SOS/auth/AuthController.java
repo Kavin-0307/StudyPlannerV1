@@ -9,6 +9,8 @@ import com.Ajwain.SOS.exception.BadRequestException;
 import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.UserRepository;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -22,8 +24,7 @@ public class AuthController {
         this.jwtService=jwtService;
     }
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(
-            @RequestBody RegisterRequestDTO dto) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
 
         AuthResponseDTO response = authService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -51,8 +52,7 @@ public class AuthController {
         }
     }
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(
-            @RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid@RequestBody LoginRequestDTO dto) {
 
         AuthResponseDTO response = authService.login(dto);
         return ResponseEntity.ok(response);

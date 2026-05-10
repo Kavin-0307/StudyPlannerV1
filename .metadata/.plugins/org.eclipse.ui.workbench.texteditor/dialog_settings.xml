@@ -4,6 +4,8 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="entity=="/>
+			<item value="&lt;!--PDF GENERATION--"/>
 			<item value="/index"/>
 			<item value="Long userId"/>
 			<item value="Asyn"/>
@@ -17,8 +19,6 @@
 			<item value="@A"/>
 			<item value="persis"/>
 			<item value="processLect"/>
-			<item value="processLectur"/>
-			<item value="aiOutputService.in"/>
 		</list>
 		<list key="replacehistory">
 			<item value="AIOutputDTO"/>

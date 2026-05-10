@@ -46,6 +46,10 @@ public class DeadlineService {
 		this.deadlineRepository=deadlineRepository;
 		this.studyPlanService=studyPlanService;
 	}
+    public CurrentUserService getCurrentUserService() {
+        return currentUserService;
+    }
+
 	@CacheEvict(value = {"deadlines", "studyplan","dashboard"}, allEntries = true)
 	public DeadlineResponseDTO createDeadline(long subjectId,DeadlineRequestDTO dto) {
 		Deadline deadline =new Deadline();

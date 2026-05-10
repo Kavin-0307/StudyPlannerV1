@@ -1,87 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocMind | Study Buddy</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">DocMind</div>
-            <nav>
-                <div class="nav-item active" data-tab="upload">Upload Lecture</div>
-                <div class="nav-item" data-tab="materials">Study Materials</div>
-                <div class="nav-item" data-tab="chat">AI Tutor</div>
-            </nav>
-        </aside>
-
-        <main class="content">
-            <!-- Upload Tab -->
-            <section id="upload-tab" class="tab-content active">
-                <header>
-                    <h1>Upload Lecture</h1>
-                    <p>Select a subject and upload your PDF to begin processing.</p>
-                </header>
-                <div class="card">
-                    <div class="form-group">
-                        <label for="subject-id">Subject ID</label>
-                        <input type="number" id="subject-id" placeholder="e.g. 1" value="1">
-                    </div>
-                    <div class="drop-zone" id="drop-zone">
-                        <span id="drop-text">Drop PDF here or click to upload</span>
-                        <input type="file" id="file-input" hidden accept=".pdf">
-                    </div>
-                    <div id="upload-status" class="status-msg"></div>
-                    <button id="upload-btn" class="btn-primary">Upload & Process</button>
-                </div>
-            </section>
-
-            <!-- Materials Tab -->
-            <section id="materials-tab" class="tab-content">
-                <header>
-                    <h1>Study Materials</h1>
-                    <div class="lecture-selector">
-                        <input type="number" id="current-lecture-id" placeholder="Enter Lecture ID">
-                        <button id="fetch-materials-btn" class="btn-secondary">Load Materials</button>
-                    </div>
-                </header>
-                <div class="grid">
-                    <div class="card" id="summary-card">
-                        <h3>Summary</h3>
-                        <p class="placeholder" id="summary-text">Load a lecture to see the summary...</p>
-                    </div>
-                    <div class="card" id="keywords-card">
-                        <h3>Keywords</h3>
-                        <div class="tag-cloud" id="keyword-tags"></div>
-                    </div>
-                    <div class="card full-width" id="revision-card">
-                        <h3>Revision Sheet</h3>
-                        <div class="markdown-view" id="revision-text"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Chat Tab -->
-            <section id="chat-tab" class="tab-content">
-                <header>
-                    <h1>AI Tutor</h1>
-                    <p>Ask anything about the lecture you just processed.</p>
-                </header>
-                <div class="chat-container">
-                    <div class="chat-messages" id="chat-messages">
-                        <div class="message bot">Hello! I've indexed your lecture. What would you like to know?</div>
-                    </div>
-                    <div class="chat-input">
-                        <input type="text" id="user-query" placeholder="Ask a question about the concepts...">
-                        <button id="send-query-btn" class="btn-primary">Send</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-    <script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

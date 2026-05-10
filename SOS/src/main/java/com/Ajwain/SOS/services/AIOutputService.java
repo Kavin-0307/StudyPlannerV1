@@ -23,6 +23,7 @@ import com.Ajwain.SOS.entities.AI_Output;
 import com.Ajwain.SOS.entities.Lecture;
 import com.Ajwain.SOS.entities.enums.OutputType;
 import com.Ajwain.SOS.exception.BadRequestException;
+import com.Ajwain.SOS.exception.ResourceNotFoundException;
 import com.Ajwain.SOS.repositories.AIOutputRepository;
 
 @Service
@@ -117,7 +118,9 @@ public class AIOutputService {
 	}
 	public AIOutputDTO getOutputByType(Long lectureId, OutputType type) {
 		AI_Output entity=aiOutputRepository.findByLectureIdAndAiOutputType(lectureId, type);
-		if(entity==null)return null;
+		if (entity == null)
+		    throw new ResourceNotFoundException("No " + type + " output found for lecture " + lectureId);
+
 		return toDTO(entity);
 	}
 

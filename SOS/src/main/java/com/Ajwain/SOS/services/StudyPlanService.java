@@ -46,6 +46,10 @@ public class StudyPlanService {
 		this.currentUserService=currentUserService;
 		this.deadlineRepository=deadlineRepository;
 	}
+    public CurrentUserService getCurrentUserService() {
+        return currentUserService;
+    }
+
 	@Transactional
 	@CacheEvict(value = {"dashboard","studyplan"}, allEntries = true)
 	public List<StudyPlanResponseDTO> generateStudyPlan(){

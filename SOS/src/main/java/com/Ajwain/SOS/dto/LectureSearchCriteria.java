@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 public class LectureSearchCriteria {
 	private String keyword;
-	private long subjectId;
-	private boolean processed;
+	private Long subjectId;
+	private Boolean processed;
 	private LocalDate fromDate;
 	private LocalDate toDate;
 	public String getKeyword() {
