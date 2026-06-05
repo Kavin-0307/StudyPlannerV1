@@ -34,3 +34,5 @@ build/
 
 ### Local secrets — never commit ###
 **/application-local.properties
+.metadata/
+sos_files/
