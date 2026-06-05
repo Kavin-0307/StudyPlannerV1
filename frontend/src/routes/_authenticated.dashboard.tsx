@@ -1,138 +1,111 @@
+import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardService } from '@/services/dashboardService'
-import { studyPlanService } from '@/services/studyPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Library, BookOpen, Clock, CheckSquare } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { format } from 'date-fns'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight, BookOpen, Clock, AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
 })
 
 function DashboardPage() {
-  const { data: dashboard, isLoading: dashLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: dashboardService.getDashboard,
-    retry: false,
+  const [chartPage, setChartPage] = React.useState(0)
+  const chartPageSize = 4
+
+  const { data: dashboardPayload, isLoading } = useQuery({
+    queryKey: ['dashboard', 'data'],
+    queryFn: () => dashboardService.getDashboard(),
   })
 
-  const { data: progress } = useQuery({
-    queryKey: ['progress'],
-    queryFn: studyPlanService.getUserProgress,
-    retry: false,
-  })
+  // Mapped to your backend JSON response structure
+  const processedLectures = dashboardPayload?.completedLectures || 0
+  const pendingRevisions = dashboardPayload?.pendingLecturesCount || 0
+  const overdueDeadlines = dashboardPayload?.upcomingDeadlines?.length || 0 
 
-  if (dashLoading) {
-    return <div className="flex h-full items-center justify-center">Loading dashboard...</div>
-  }
+  // Mapping the metrics from the JSON response to the chart data format
+  const rawChartItems = [
+    { name: 'Total Study Sessions', value: dashboardPayload?.totalStudySessions || 0 },
+    { name: 'Study Hours (Week)', value: dashboardPayload?.studyHoursThisWeek || 0 },
+    { name: 'Completed Sessions', value: dashboardPayload?.completedStudySessions || 0 }
+  ]
+  
+  const totalChartPages = Math.ceil(rawChartItems.length / chartPageSize) || 1
 
-  const chartData = progress ? Object.entries(progress).map(([name, value]) => ({ name, value })) : []
+  const paginatedChartItems = React.useMemo(() => {
+    const start = chartPage * chartPageSize
+    return rawChartItems.slice(start, start + chartPageSize)
+  }, [rawChartItems, chartPage, chartPageSize])
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-
-      {/* Top row: Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Subjects" value="--" icon={Library} />
-        <StatCard title="Lectures" value={`${dashboard?.completedLectures ?? '--'} processed`} icon={BookOpen} />
-        <StatCard title="Pending Revisions" value="--" icon={CheckSquare} />
-        <StatCard title="Overdue Deadlines" value={dashboard?.upcomingDeadlines?.length ?? 0} icon={Clock} className="text-destructive" />
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground text-sm">Overview of your academic progress.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Today's Study Plan */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Today's Study Plan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!dashboard?.todayStudyPlan?.length ? (
-              <p className="text-muted-foreground text-sm">No sessions scheduled for today.</p>
-            ) : (
-              <div className="space-y-4">
-                {dashboard.todayStudyPlan.map((plan: any) => (
-                  <div key={plan.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/50">
-                    <div>
-                      <p className="font-medium">{plan.subjectName || `Subject ${plan.subjectId}`}</p>
-                      <p className="text-xs text-muted-foreground">{plan.durationMinutes} mins</p>
-                    </div>
-                    <div className="text-xs font-semibold px-2 py-1 rounded bg-background">
-                      {plan.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {isLoading ? (
+        <div className="flex h-40 items-center justify-center">Loading dashboard analytics...</div>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Lectures</CardTitle>
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent><div className="text-2xl font-bold">{processedLectures} processed</div></CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Pending Revisions</CardTitle>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent><div className="text-2xl font-bold">{pendingRevisions}</div></CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-destructive">Upcoming Deadlines</CardTitle>
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent><div className="text-2xl font-bold text-destructive">{overdueDeadlines}</div></CardContent>
+            </Card>
+          </div>
 
-        {/* Upcoming Deadlines */}
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Upcoming Deadlines</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!dashboard?.upcomingDeadlines?.length ? (
-              <p className="text-muted-foreground text-sm">No upcoming deadlines.</p>
-            ) : (
-              <div className="space-y-4">
-                {dashboard.upcomingDeadlines.map((deadline: any) => (
-                  <div key={deadline.id} className="flex flex-col gap-1 p-3 rounded-lg border border-border">
-                    <p className="font-medium text-sm">{deadline.deadlineTitle}</p>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{deadline.deadlineType}</span>
-                      <span>{format(new Date(deadline.deadlineDate), 'MMM d, yyyy')}</span>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-bold">Metrics Framework</CardTitle>
+              {totalChartPages > 1 && (
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="text-muted-foreground">Range {chartPage + 1} of {totalChartPages}</span>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setChartPage((o) => Math.max(0, o - 1))} disabled={chartPage === 0}><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setChartPage((o) => Math.min(totalChartPages - 1, o + 1))} disabled={chartPage >= totalChartPages - 1}><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 font-mono text-xs">
+                {paginatedChartItems.map((item: any, idx: number) => {
+                  const countValue = item.value || 0
+                  const maxVal = Math.max(...rawChartItems.map((i: any) => i.value), 1)
+                  return (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between text-muted-foreground px-1">
+                        <span>{item.name.toLowerCase()}</span>
+                        <span>{countValue} units</span>
+                      </div>
+                      <div className="h-8 w-full bg-muted/40 rounded border flex items-center relative overflow-hidden">
+                        <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${Math.min(100, Math.max(8, (countValue / maxVal) * 100))}%` }} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Progress Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Study Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
-                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                />
-                <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-              No progress data available
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
-  )
-}
-
-function StatCard({ title, value, icon: Icon, className }: { title: string; value: string | number; icon: any; className?: string }) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 text-muted-foreground ${className}`} />
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${className}`}>{value}</div>
-      </CardContent>
-    </Card>
   )
 }

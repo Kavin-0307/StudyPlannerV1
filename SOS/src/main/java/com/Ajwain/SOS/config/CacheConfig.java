@@ -18,57 +18,48 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 public class CacheConfig {
 
+    // 1. Move the serializer creation out so both beans can safely consume it
+    private RedisCacheConfiguration createBaseCacheConfig(Jackson2JsonRedisSerializer<Object> serializer) {
+        return RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(60))
+                .disableCachingNullValues()
+                .serializeValuesWith(SerializationPair.fromSerializer(serializer));
+    }
+
     @Bean
-    public RedisCacheConfiguration cacheConfiguration() {
-
+    public Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
-
         objectMapper.registerModule(new JavaTimeModule());
-
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        BasicPolymorphicTypeValidator ptv =
-                BasicPolymorphicTypeValidator.builder()
-                        .allowIfSubType(Object.class)
-                        .build();
+        BasicPolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType(Object.class)
+                .build();
 
+        // Standardizing typing settings safely
         objectMapper.activateDefaultTyping(
                 ptv,
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );
 
-        Jackson2JsonRedisSerializer<Object> serializer =
-                new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
-
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60))
-                .disableCachingNullValues()
-                .serializeValuesWith(
-                        SerializationPair.fromSerializer(serializer)
-                );
+        return new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
     }
 
     @Bean
-    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
-            RedisCacheConfiguration config) {
+    public RedisCacheConfiguration cacheConfiguration(Jackson2JsonRedisSerializer<Object> serializer) {
+        return createBaseCacheConfig(serializer);
+    }
+
+    @Bean
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(Jackson2JsonRedisSerializer<Object> serializer) {
+        // 2. Explicitly bind your custom base config to the custom TTL values
+        RedisCacheConfiguration baseConfig = createBaseCacheConfig(serializer);
 
         return (builder) -> builder
-                .withCacheConfiguration(
-                        "subjects",
-                        config.entryTtl(Duration.ofMinutes(10))
-                )
-                .withCacheConfiguration(
-                        "deadlines",
-                        config.entryTtl(Duration.ofMinutes(20))
-                )
-                .withCacheConfiguration(
-                        "studyplan",
-                        config.entryTtl(Duration.ofMinutes(10))
-                )
-                .withCacheConfiguration(
-                        "dashboard",
-                        config.entryTtl(Duration.ofMinutes(5))
-                );
+                .withCacheConfiguration("subjects", baseConfig.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("deadlines", baseConfig.entryTtl(Duration.ofMinutes(20)))
+                .withCacheConfiguration("studyplan", baseConfig.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("dashboard", baseConfig.entryTtl(Duration.ofMinutes(5)));
     }
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { studyPlanService } from '@/services/studyPlanService'
+import { subjectService } from '@/services/subjectService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,10 +15,24 @@ export const Route = createFileRoute('/_authenticated/study-plan')({
 function StudyPlanPage() {
   const queryClient = useQueryClient()
 
-  const { data: plans, isLoading } = useQuery({
+  // 1. Fetch study plans
+  const { data: plans, isLoading: isPlansLoading } = useQuery({
     queryKey: ['study-plans'],
     queryFn: () => studyPlanService.getAll(),
   })
+
+  // 2. Fetch subjects to resolve matching IDs to explicit string names locally
+  const { data: subjectsList, isLoading: isSubjectsLoading } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => subjectService.getAll(),
+    retry: false,
+  })
+
+  // 3. Map list elements array into key-value map dictionary
+  const subjectsMap = (subjectsList || []).reduce((acc: Record<number, string>, sub: any) => {
+    acc[sub.id] = sub.subjectName || sub.subject_name
+    return acc
+  }, {})
 
   const generateMutation = useMutation({
     mutationFn: studyPlanService.generate,
@@ -47,6 +62,7 @@ function StudyPlanPage() {
   }, {}) || {}
 
   const sortedDates = Object.keys(groupedPlans).sort()
+  const isLoading = isPlansLoading || isSubjectsLoading
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -86,32 +102,37 @@ function StudyPlanPage() {
                   {isToday && <span className="ml-2 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase">Today</span>}
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {datePlans.map((plan: any) => (
-                    <Card key={plan.id} className={plan.status === 'COMPLETED' ? 'opacity-60 bg-muted/50' : 'bg-card'}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex justify-between">
-                          <span>{plan.subjectName || `Subject ${plan.subjectId}`}</span>
-                          <span className="text-sm font-normal text-muted-foreground">{plan.durationMinutes}m</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Select 
-                          value={plan.status} 
-                          onValueChange={(val) => handleStatusChange(plan.id, val)}
-                          disabled={updateStatusMutation.isPending}
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs mt-2">
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="PLANNED">Planned</SelectItem>
-                            <SelectItem value="COMPLETED">Completed</SelectItem>
-                            <SelectItem value="MISSED">Missed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {datePlans.map((plan: any) => {
+                    // Resolve the explicit friendly text name using our mapping reference list
+                    const explicitSubjectName = subjectsMap[plan.subjectId] || plan.subjectName || `Subject ${plan.subjectId}`;
+
+                    return (
+                      <Card key={plan.id} className={plan.status === 'COMPLETED' ? 'opacity-60 bg-muted/50' : 'bg-card'}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base flex justify-between">
+                            <span>{explicitSubjectName}</span>
+                            <span className="text-sm font-normal text-muted-foreground">{plan.durationMinutes}m</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Select 
+                            value={plan.status} 
+                            onValueChange={(val) => handleStatusChange(plan.id, val)}
+                            disabled={updateStatusMutation.isPending}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs mt-2">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PLANNED">Planned</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                              <SelectItem value="MISSED">Missed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
               </div>
             )

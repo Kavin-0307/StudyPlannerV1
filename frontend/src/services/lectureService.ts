@@ -14,7 +14,8 @@ export interface Lecture {
 export const lectureService = {
   getAll: async (params?: any) => {
     const res = await api.get("/api/lectures", { params });
-    return res.data.data;
+    // Return the entire payload envelope containing metadata fields + item array data
+    return res.data; 
   },
   getById: async (id: number) => {
     const res = await api.get(`/api/lectures/${id}`);
