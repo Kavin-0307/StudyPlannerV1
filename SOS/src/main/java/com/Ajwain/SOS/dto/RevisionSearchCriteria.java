@@ -15,7 +15,7 @@ public class RevisionSearchCriteria {
     public void setUserId(Long userId) {
     	this.userId=userId;
     }
-    public void setLectureId(long lectureId) {
+    public void setLectureId(Long lectureId) {
     	this.lectureId=lectureId;
     }
     public void setRevisionStatus(RevisionStatus revisionStatus) {
@@ -30,16 +30,16 @@ public class RevisionSearchCriteria {
     public void setToDate(LocalDate toDate) {
     	this.toDate=toDate;
     }
-    public long getLectureId() {
+    public Long getLectureId() {
     	return lectureId;
     }
-    public long getUserId() {
+    public Long getUserId() {
     	return userId;
     }
     public RevisionStatus getRevisionStatus() {
     	return status;
     }
-    public int getRevisionNumber() {
+    public Integer getRevisionNumber() {
     	return revisionNumber;
     }
     public LocalDate getFromDate() {

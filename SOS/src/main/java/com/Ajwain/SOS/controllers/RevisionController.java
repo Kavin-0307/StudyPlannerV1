@@ -32,7 +32,8 @@ public class RevisionController {
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
             Pageable pageable) {
-
+    	System.out.println("lectureId param: " + lectureId);
+    	System.out.println("userId param: " + userId);
         RevisionSearchCriteria criteria = new RevisionSearchCriteria();
         criteria.setUserId(userId);
         criteria.setLectureId(lectureId);

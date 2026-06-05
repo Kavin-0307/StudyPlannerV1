@@ -177,8 +177,9 @@ public class StudyPlanService {
 			  value = "studyplan",
 			  key = "'all:'+#root.target.currentUserService.getCurrentUser().id "
 			)
+
 	public List<StudyPlanResponseDTO> getStudyPlanByUser() {
-		 User user = currentUserService.getCurrentUser(); // ✅ FIX
+		 User user = currentUserService.getCurrentUser(); 
 		 List<StudyPlan> plans = studyPlanRepository.findFullPlanWithRelations(user.getId());
 		 if (plans.isEmpty()) {
 		        throw new ResourceNotFoundException("The study plan was not found");
@@ -214,6 +215,7 @@ public class StudyPlanService {
 				studyPlan.getDurationMinutes(),
 				studyPlan.getStudyStatus());
 	}
+
 	@Cacheable(
 			  value = "studyplan",
 			  key = "'page:'+#root.target.currentUserService.getCurrentUser().id +':' + #pageable.pageNumber"
@@ -232,6 +234,7 @@ public class StudyPlanService {
 			  value = "studyplan",
 			  key = "'today-page:'+#root.target.currentUserService.getCurrentUser().id + ':' + #pageable.pageNumber"
 			)
+
 	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
 	    User user = currentUserService.getCurrentUser(); 
 	    pageable = validatePageable(pageable);
@@ -259,7 +262,7 @@ public class StudyPlanService {
 	}
 	public PaginationResponseDTO<StudyPlanResponseDTO> getPlanByDateRange(LocalDate start, LocalDate end, Pageable pageable) {
 
-	    User user = currentUserService.getCurrentUser(); // ✅ FIX
+	    User user = currentUserService.getCurrentUser(); 
 
 	    pageable = validatePageable(pageable);
 

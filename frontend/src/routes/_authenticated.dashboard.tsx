@@ -15,11 +15,13 @@ function DashboardPage() {
   const { data: dashboard, isLoading: dashLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: dashboardService.getDashboard,
+    retry: false,
   })
 
   const { data: progress } = useQuery({
     queryKey: ['progress'],
     queryFn: studyPlanService.getUserProgress,
+    retry: false,
   })
 
   if (dashLoading) {
@@ -35,23 +37,23 @@ function DashboardPage() {
       {/* Top row: Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Subjects" value="--" icon={Library} />
-        <StatCard title="Lectures" value={`${dashboard?.completedLectures || 0} processed`} icon={BookOpen} />
+        <StatCard title="Lectures" value={`${dashboard?.completedLectures ?? '--'} processed`} icon={BookOpen} />
         <StatCard title="Pending Revisions" value="--" icon={CheckSquare} />
-        <StatCard title="Overdue Deadlines" value={dashboard?.upcomingDeadlines?.length || 0} icon={Clock} className="text-destructive" />
+        <StatCard title="Overdue Deadlines" value={dashboard?.upcomingDeadlines?.length ?? 0} icon={Clock} className="text-destructive" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Middle row left: Today's Study Plan */}
+        {/* Today's Study Plan */}
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Today's Study Plan</CardTitle>
           </CardHeader>
           <CardContent>
-            {dashboard?.todayStudyPlan?.length === 0 ? (
+            {!dashboard?.todayStudyPlan?.length ? (
               <p className="text-muted-foreground text-sm">No sessions scheduled for today.</p>
             ) : (
               <div className="space-y-4">
-                {dashboard?.todayStudyPlan?.map((plan: any) => (
+                {dashboard.todayStudyPlan.map((plan: any) => (
                   <div key={plan.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/50">
                     <div>
                       <p className="font-medium">{plan.subjectName || `Subject ${plan.subjectId}`}</p>
@@ -67,17 +69,17 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Middle row right: Upcoming Deadlines */}
+        {/* Upcoming Deadlines */}
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Upcoming Deadlines</CardTitle>
           </CardHeader>
           <CardContent>
-            {dashboard?.upcomingDeadlines?.length === 0 ? (
+            {!dashboard?.upcomingDeadlines?.length ? (
               <p className="text-muted-foreground text-sm">No upcoming deadlines.</p>
             ) : (
               <div className="space-y-4">
-                {dashboard?.upcomingDeadlines?.map((deadline: any) => (
+                {dashboard.upcomingDeadlines.map((deadline: any) => (
                   <div key={deadline.id} className="flex flex-col gap-1 p-3 rounded-lg border border-border">
                     <p className="font-medium text-sm">{deadline.deadlineTitle}</p>
                     <div className="flex justify-between text-xs text-muted-foreground">
@@ -92,7 +94,7 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Bottom row: Progress Chart */}
+      {/* Progress Chart */}
       <Card>
         <CardHeader>
           <CardTitle>Study Progress</CardTitle>
@@ -102,13 +104,18 @@ function DashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
-                <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
+                />
                 <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No progress data available</div>
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+              No progress data available
+            </div>
           )}
         </CardContent>
       </Card>

@@ -4,6 +4,10 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="lectureId"/>
+			<item value="queryLecture"/>
+			<item value="FIX"/>
+			<item value="@Cacheable"/>
 			<item value="query"/>
 			<item value="entity=="/>
 			<item value="&lt;!--PDF GENERATION--"/>
@@ -15,10 +19,6 @@
 			<item value="proc"/>
 			<item value="processLe"/>
 			<item value=".proc"/>
-			<item value="Async"/>
-			<item value="async"/>
-			<item value="@A"/>
-			<item value="persis"/>
 		</list>
 		<list key="replacehistory">
 			<item value="AIOutputDTO"/>

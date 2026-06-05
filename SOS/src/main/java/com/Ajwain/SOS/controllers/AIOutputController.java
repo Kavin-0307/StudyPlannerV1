@@ -39,7 +39,7 @@ public class AIOutputController {
 	    return ResponseEntity.ok(aiOutputService.getOutputsForLecture(lectureId));
 	}
 	@PostMapping("/query")
-	public ResponseEntity<List<Map<String, Object>>> queryLecture(@RequestBody@Valid LectureQueryRequest request) {
+	public ResponseEntity<Map<String, Object>> queryLecture(@RequestBody@Valid LectureQueryRequest request) {
 
 	    lectureService.getLectureById(request.lectureId());
 	    return ResponseEntity.ok(aiOutputService.queryLecture(request.question(), request.lectureId()));

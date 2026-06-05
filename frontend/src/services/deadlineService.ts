@@ -9,6 +9,11 @@ export interface Deadline {
 }
 
 export const deadlineService = {
+  // Hits GET /api/deadlines (specification endpoint — no broken @Cacheable)
+  search: async (params?: any) => {
+    const res = await api.get("/api/deadlines", { params });
+    return res.data.data;
+  },
   getUpcoming: async () => {
     const res = await api.get("/api/deadlines/upcoming");
     return res.data.data;
@@ -17,6 +22,7 @@ export const deadlineService = {
     const res = await api.get("/api/deadlines/overdue");
     return res.data.data;
   },
+  // Keep getAll for backwards compat elsewhere
   getAll: async (params?: any) => {
     const endpoint = params?.subjectId ? "/api/deadlines" : "/api/deadlines/all";
     const res = await api.get(endpoint, { params });

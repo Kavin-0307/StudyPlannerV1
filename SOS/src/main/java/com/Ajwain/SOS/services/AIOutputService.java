@@ -125,33 +125,25 @@ public class AIOutputService {
 	}
 
 	
-	public List<Map<String,Object>> queryLecture(String question, Long lectureId) {
-		if (question == null || question.isBlank()) {
-		    throw new BadRequestException("Question cannot be empty");
-		}
-		if (lectureId == null) {
-		    throw new BadRequestException("lectureId is required");
-		}
-		String sessionId = "lecture_" + lectureId;
-		QueryRequestDTO request = new QueryRequestDTO();
-		request.setQuestion(question);
-		request.setSessionId(sessionId);
-		request.setK(3);
-		try {
-			
-			Map<String, Object> response = restTemplate.postForObject(url + "/query", request, Map.class);
-			if (response == null || !response.containsKey("results"))
-				return List.of();
+	public Map<String, Object> queryLecture(String question, Long lectureId) {
+	    if (question == null || question.isBlank())
+	        throw new BadRequestException("Question cannot be empty");
+	    if (lectureId == null)
+	        throw new BadRequestException("lectureId is required");
 
-			@SuppressWarnings("unchecked")
-			List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
-			return results.stream().map(r->{Map<String,Object> item=new HashMap<>();
-											item.put("text", r.get("text"));
-											item.put("score", r.get("score"));
-											item.put("rank", r.get("rank"));
-											return item;
-			}).toList();
-		} catch (HttpClientErrorException e) {
+	    String sessionId = "lecture_" + lectureId;
+	    QueryRequestDTO request = new QueryRequestDTO();
+	    request.setQuestion(question);
+	    request.setSessionId(sessionId);
+	    request.setK(3);
+
+	    try {
+	        Map<String, Object> response = restTemplate.postForObject(url + "/query", request, Map.class);
+	        if (response == null || !response.containsKey("results"))
+	            return Map.of("found", false, "synthesised_answer", "This information is not present in the lecture.", "results", List.of());
+
+	        return response; // passes through synthesised_answer, found, results, metadata all at once
+	    }catch (HttpClientErrorException e) {
 		    if (e.getStatusCode().is4xxClientError()) {
 		        throw new BadRequestException(
 		            "Document index not available. "
