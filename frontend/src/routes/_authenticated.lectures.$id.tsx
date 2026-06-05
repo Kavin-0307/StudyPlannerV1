@@ -160,7 +160,7 @@ function LectureDetailsPage() {
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant="outline" className="text-indigo-400 border-indigo-500/30">Match Score: {res.score?.toFixed(2)}</Badge>
                   </div>
-                  <p className="text-sm text-foreground/90 leading-relaxed">{res.chunkText}</p>
+                  <p className="text-sm text-foreground/90 leading-relaxed">{res.text}</p>
                 </div>
               ))}
             </div>

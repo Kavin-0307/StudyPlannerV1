@@ -29,8 +29,8 @@ export const aiOutputService = {
     const res = await api.get(`/api/ai-output/lecture/${lectureId}/important-points`);
     return res.data;
   },
-  queryDocMind: async (lectureId: number, query: string) => {
-    const res = await api.post("/api/ai-output/query", { lectureId, query });
+  queryDocMind: async (lectureId: number, question: string) => {
+    const res = await api.post("/api/ai-output/query", { lectureId, question });
     return res.data;
   }
 };

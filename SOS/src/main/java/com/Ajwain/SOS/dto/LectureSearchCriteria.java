@@ -14,7 +14,7 @@ public class LectureSearchCriteria {
 	public Long getSubjectId() {
 		return subjectId;
 	}
-	public boolean getProcessed() {
+	public Boolean getProcessed() {
 		return processed;
 	}
 	public LocalDate getFromDate() {
@@ -29,7 +29,7 @@ public class LectureSearchCriteria {
 	public void setKeyword(String keyword) {
 		this.keyword=keyword;
 	}
-	public void setProcessed(boolean processed) {
+	public void setProcessed(Boolean processed) {
 		this.processed=processed;
 	}
 	public void setFromDate(LocalDate fromDate) {

@@ -24,7 +24,7 @@ public class Lecture {
 	
 	
 	@Lob
-	@Column(name="text_content")
+	@Column(name="text_content", columnDefinition = "LONGTEXT")
 	private String lectureText;
 	
 	

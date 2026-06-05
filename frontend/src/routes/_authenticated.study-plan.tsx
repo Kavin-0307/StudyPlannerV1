@@ -39,7 +39,7 @@ function StudyPlanPage() {
   }
 
   // Group by date
-  const groupedPlans = plans?.content?.reduce((acc: any, plan: any) => {
+  const groupedPlans = plans?.reduce((acc: any, plan: any) => {
     const date = plan.studyDate
     if (!acc[date]) acc[date] = []
     acc[date].push(plan)

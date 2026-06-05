@@ -14,11 +14,27 @@ export interface AuthResponse {
 export const authService = {
   login: async (credentials: any): Promise<AuthResponse> => {
     const res = await api.post("/api/auth/login", credentials);
-    return res.data;
+    const { token, userId, userName, userEmail } = res.data;
+    return {
+      token,
+      user: {
+        id: userId,
+        userName,
+        userEmail,
+      },
+    };
   },
   register: async (data: any): Promise<AuthResponse> => {
     const res = await api.post("/api/auth/register", data);
-    return res.data;
+    const { token, userId, userName, userEmail } = res.data;
+    return {
+      token,
+      user: {
+        id: userId,
+        userName,
+        userEmail,
+      },
+    };
   },
   getCurrentUser: (): User | null => {
     const userStr = localStorage.getItem("user");

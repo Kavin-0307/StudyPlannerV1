@@ -87,8 +87,7 @@ public class LectureService {
 	// ============== PROCESSING THE LECTURE ==============
 	
 	public LectureResponseDTO markProcessed(Long lectureId, String extractedText,User user)  {
-	    Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));
-	    assertOwnership(lecture.getSubject().getUser().getId(),user.getId());
+ Lecture lecture = lectureRepository.findByIdWithSubjectAndUser(lectureId).orElseThrow(() -> new ResourceNotFoundException( "Lecture not found"));	    assertOwnership(lecture.getSubject().getUser().getId(),user.getId());
 	    String originalPath=lecture.getFilePath();
 	    lecture.setLectureText(extractedText);
 	    lecture.setProcessed(true);

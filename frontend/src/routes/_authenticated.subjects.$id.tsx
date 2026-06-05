@@ -6,7 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Cpu, Eye } from 'lucide-react'
+import { Cpu, Eye, Upload } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/_authenticated/subjects/$id')({
   component: SubjectDetailsPage,
@@ -16,6 +20,10 @@ function SubjectDetailsPage() {
   const { id } = Route.useParams()
   const subjectId = Number(id)
   const queryClient = useQueryClient()
+
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadError, setUploadError] = useState('')
 
   const { data: lectures, isLoading: lecLoading } = useQuery({
     queryKey: ['lectures', subjectId],
@@ -32,8 +40,28 @@ function SubjectDetailsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lectures', subjectId] }),
   })
 
+  const uploadMutation = useMutation({
+    mutationFn: ({ file }: { file: File }) =>
+      lectureService.upload(subjectId, file, { subjectId, filePath: file.name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lectures', subjectId] })
+      setUploadOpen(false)
+      setSelectedFile(null)
+      setUploadError('')
+    },
+    onError: (err: any) => {
+      setUploadError(err.response?.data?.message || err.message || 'Failed to upload lecture')
+    }
+  })
+
   const handleProcess = (lectureId: number) => {
     processMutation.mutate(lectureId)
+  }
+
+  const handleUploadSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedFile) return
+    uploadMutation.mutate({ file: selectedFile })
   }
 
   return (
@@ -53,7 +81,36 @@ function SubjectDetailsPage() {
         <TabsContent value="lectures" className="mt-6 space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Lectures</h2>
-            <Button>Upload Lecture</Button> {/* Add dialog logic later if needed */}
+            <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Upload className="mr-2 h-4 w-4" /> Upload Lecture
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Upload Lecture PDF</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleUploadSubmit} className="space-y-4">
+                  {uploadError && <div className="text-sm text-destructive font-medium text-center">{uploadError}</div>}
+                  <div className="space-y-2">
+                    <Label htmlFor="file">Select PDF File</Label>
+                    <Input 
+                      id="file" 
+                      type="file" 
+                      accept=".pdf" 
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} 
+                      required 
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" disabled={uploadMutation.isPending || !selectedFile}>
+                      {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
           {lecLoading ? (
             <div>Loading lectures...</div>

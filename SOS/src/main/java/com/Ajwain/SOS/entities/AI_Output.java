@@ -22,7 +22,7 @@ public class AI_Output {
 	private OutputType aiOutputType;
 	
 	@Lob
-	@Column(name="content")
+	@Column(name="content", columnDefinition = "LONGTEXT")
 	private String outputContent;
 	
 	@Column(nullable = false, updatable = false)

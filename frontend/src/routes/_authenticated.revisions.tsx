@@ -24,7 +24,7 @@ function RevisionsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['revisions'] }),
   })
 
-  const revisions = revisionsData?.content || []
+  const revisions = revisionsData || []
 
   return (
     <div className="space-y-6">

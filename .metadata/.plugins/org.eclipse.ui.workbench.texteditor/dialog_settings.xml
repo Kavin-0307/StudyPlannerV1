@@ -4,6 +4,7 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="query"/>
 			<item value="entity=="/>
 			<item value="&lt;!--PDF GENERATION--"/>
 			<item value="/index"/>
@@ -18,7 +19,6 @@
 			<item value="async"/>
 			<item value="@A"/>
 			<item value="persis"/>
-			<item value="processLect"/>
 		</list>
 		<list key="replacehistory">
 			<item value="AIOutputDTO"/>

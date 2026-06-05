@@ -18,7 +18,8 @@ export const deadlineService = {
     return res.data.data;
   },
   getAll: async (params?: any) => {
-    const res = await api.get("/api/deadlines", { params });
+    const endpoint = params?.subjectId ? "/api/deadlines" : "/api/deadlines/all";
+    const res = await api.get(endpoint, { params });
     return res.data.data;
   },
   create: async (subjectId: number, data: any) => {
