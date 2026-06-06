@@ -1,18 +1,25 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { subjectService } from '@/services/subjectService'
+import { lectureService } from '@/services/lectureService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Folder } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, BookOpen, ChevronRight } from 'lucide-react'
+import { useState, useMemo } from 'react'
 
 export const Route = createFileRoute('/_authenticated/subjects/')({
   component: SubjectsPage,
 })
+
+const PRIORITY_LABEL: Record<number, { label: string; className: string }> = {
+  1: { label: 'High priority',   className: 'text-red-600 bg-red-50 border-red-200' },
+  2: { label: 'Medium priority', className: 'text-amber-700 bg-amber-50 border-amber-200' },
+  3: { label: 'Low priority',    className: 'text-muted-foreground bg-muted border-border' },
+}
 
 function SubjectsPage() {
   const queryClient = useQueryClient()
@@ -25,6 +32,20 @@ function SubjectsPage() {
     queryKey: ['subjects'],
     queryFn: () => subjectService.getAll(),
   })
+
+  // Fetch all lectures once to get per-subject counts — already cached from other pages
+  const { data: lecturesEnvelope } = useQuery({
+    queryKey: ['lectures', 'all', 0, 200, null, null],
+    queryFn: () => lectureService.getAll({ size: 200 }),
+  })
+
+  const lectureCounts = useMemo(() => {
+    const counts: Record<number, number> = {}
+    ;(lecturesEnvelope?.data || []).forEach((l: any) => {
+      counts[l.subjectId] = (counts[l.subjectId] || 0) + 1
+    })
+    return counts
+  }, [lecturesEnvelope])
 
   const createMutation = useMutation({
     mutationFn: subjectService.create,
@@ -92,33 +113,50 @@ function SubjectsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex h-40 items-center justify-center">Loading subjects...</div>
-      ) : subjects?.length === 0 ? (
+        <div className="flex h-40 items-center justify-center text-muted-foreground">
+          Loading subjects...
+        </div>
+      ) : !subjects?.length ? (
         <div className="flex h-40 items-center justify-center text-muted-foreground border border-dashed rounded-lg">
-          No subjects found. Create one to get started.
+          No subjects yet. Create one to get started.
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {subjects?.map((subject: any) => (
-            <Link key={subject.id} to="/subjects/$id" params={{ id: subject.id.toString() }}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-border bg-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-bold">{subject.subjectName}</CardTitle>
-                  <Folder className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs font-semibold px-2 py-1 rounded bg-accent text-accent-foreground">
-                      {subject.subjectTag}
-                    </span>
-                    <span className="text-xs text-muted-foreground">Priority: {subject.subjectPriority}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {subjects.map((subject: any) => {
+            const count = lectureCounts[subject.id] || 0
+            const priority = PRIORITY_LABEL[subject.subjectPriority] || PRIORITY_LABEL[3]
+
+            return (
+              <Link key={subject.id} to="/subjects/$id" params={{ id: subject.id.toString() }}>
+                <Card className="hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer h-full group">
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                      {subject.subjectName}
+                    </CardTitle>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors mt-0.5 shrink-0" />
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>{count} lecture{count !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${priority.className}`}>
+                        {subject.subjectTag}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded border font-medium ${priority.className}`}>
+                        {priority.label}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
+
+

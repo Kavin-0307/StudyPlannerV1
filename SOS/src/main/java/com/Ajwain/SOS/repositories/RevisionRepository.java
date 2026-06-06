@@ -27,6 +27,6 @@ public interface RevisionRepository extends JpaRepository<Revision,Long>,JpaSpec
 	Page<Revision> findByRevisionDateLessThanEqualAndStatus(LocalDate date, RevisionStatus status, Pageable pageable);
 
 	Page<Revision> findByLectureSubjectUserAndRevisionDateLessThanEqual(User user, LocalDate now, Pageable pageable);
-
+	Long countByLectureSubjectUserAndStatus(User user, RevisionStatus status);
 	Page<Revision> findByLectureSubjectUserAndStatus(User user, RevisionStatus pending, Pageable pageable);
 }

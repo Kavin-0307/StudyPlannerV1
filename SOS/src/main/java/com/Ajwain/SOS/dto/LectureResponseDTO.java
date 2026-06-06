@@ -12,4 +12,5 @@ public record LectureResponseDTO(
         LocalDate uploadDate
         ,String lectureText,boolean indexed
         ,ProcessingStatus processingStatus
+        ,String lectureTitle
 ) {}

@@ -10,7 +10,10 @@ public class LectureRequestDTO {
 
     @NotBlank
     private String filePath;
+    private String lectureTitle;
 
+    public String getLectureTitle() { return lectureTitle; }
+    public void setLectureTitle(String lectureTitle) { this.lectureTitle = lectureTitle; }
     public Long getSubjectId() {
         return subjectId;
     }

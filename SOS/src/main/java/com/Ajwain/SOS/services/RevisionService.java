@@ -148,4 +148,8 @@ public class RevisionService {
 	    	throw new UnauthorizedException("Access denied");
 	    }
 	}
+	public Long countPendingRevisionsByUser() {
+	    User user = currentUserService.getCurrentUser();
+	    return revisionRepository.countByLectureSubjectUserAndStatus(user, RevisionStatus.PENDING);
+	}
 	}

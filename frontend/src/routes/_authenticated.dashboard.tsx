@@ -1,109 +1,261 @@
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardService } from '@/services/dashboardService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, BookOpen, Clock, AlertCircle } from 'lucide-react'
+import { BookOpen, Clock, AlertCircle, CalendarCheck, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { subjectService } from '@/services/subjectService'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
 })
 
-function DashboardPage() {
-  const [chartPage, setChartPage] = React.useState(0)
-  const chartPageSize = 4
+// ─── Small stat card ───────────────────────────────────────────────────────
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  variant = 'default',
+  linkTo,
+  sublabel,
+}: {
+  label: string
+  value: string | number
+  icon: React.ElementType
+  variant?: 'default' | 'warning' | 'danger'
+  linkTo?: string
+  sublabel?: string
+}) {
+  const colorClass =
+    variant === 'danger'
+      ? 'text-destructive'
+      : variant === 'warning'
+      ? 'text-amber-600'
+      : 'text-foreground'
 
-  const { data: dashboardPayload, isLoading } = useQuery({
+  const iconColorClass =
+    variant === 'danger'
+      ? 'text-destructive'
+      : variant === 'warning'
+      ? 'text-amber-500'
+      : 'text-muted-foreground'
+
+  const inner = (
+    <Card className={linkTo ? 'hover:border-primary/50 transition-colors cursor-pointer' : ''}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </CardTitle>
+        <Icon className={`h-4 w-4 ${iconColorClass}`} />
+      </CardHeader>
+      <CardContent>
+        <div className={`text-3xl font-bold ${colorClass}`}>{value}</div>
+        {sublabel && <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>}
+      </CardContent>
+    </Card>
+  )
+
+  return linkTo ? <Link to={linkTo}>{inner}</Link> : inner
+}
+
+// ─── Horizontal bar row ────────────────────────────────────────────────────
+function MetricBar({
+  label,
+  value,
+  max,
+  unit,
+  colorClass = 'bg-primary',
+}: {
+  label: string
+  value: number
+  max: number
+  unit: string
+  colorClass?: string
+}) {
+  const pct = max > 0 ? Math.min(100, Math.max(4, (value / max) * 100)) : 4
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{label}</span>
+        <span className="font-medium text-foreground">
+          {value} <span className="font-normal opacity-60">{unit}</span>
+        </span>
+      </div>
+      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────
+function DashboardPage() {
+  const { data: dash, isLoading } = useQuery({
     queryKey: ['dashboard', 'data'],
     queryFn: () => dashboardService.getDashboard(),
+    refetchInterval: 60_000,
   })
 
-  // Mapped to your backend JSON response structure
-  const processedLectures = dashboardPayload?.completedLectures || 0
-  const pendingRevisions = dashboardPayload?.pendingLecturesCount || 0
-  const overdueDeadlines = dashboardPayload?.upcomingDeadlines?.length || 0 
+  const { data: subjectsList } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => subjectService.getAll(),
+  })
 
-  // Mapping the metrics from the JSON response to the chart data format
-  const rawChartItems = [
-    { name: 'Total Study Sessions', value: dashboardPayload?.totalStudySessions || 0 },
-    { name: 'Study Hours (Week)', value: dashboardPayload?.studyHoursThisWeek || 0 },
-    { name: 'Completed Sessions', value: dashboardPayload?.completedStudySessions || 0 }
-  ]
-  
-  const totalChartPages = Math.ceil(rawChartItems.length / chartPageSize) || 1
+  const subjectsMap = React.useMemo(
+    () =>
+      (subjectsList || []).reduce((acc: Record<number, string>, s: any) => {
+        acc[s.id] = s.subjectName
+        return acc
+      }, {}),
+    [subjectsList],
+  )
 
-  const paginatedChartItems = React.useMemo(() => {
-    const start = chartPage * chartPageSize
-    return rawChartItems.slice(start, start + chartPageSize)
-  }, [rawChartItems, chartPage, chartPageSize])
+  const processedLectures = dash?.completedLectures ?? 0
+  const pendingRevisions  = dash?.pendingRevisionsCount ?? 0   // ← new field from backend
+  const upcomingDeadlines = dash?.upcomingDeadlines?.length ?? 0
+
+  // Metrics panel — all sourced correctly now
+  const studyMinutesWeek    = dash?.studyHoursThisWeek ?? 0    // minutes, not hours
+  const totalSessions       = dash?.totalStudySessions ?? 0
+  const completedSessions   = dash?.completedStudySessions ?? 0
+  const progressPct         = dash?.progressPercentage ?? 0
+
+  const metricsMax = Math.max(studyMinutesWeek, totalSessions, completedSessions, 1)
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Overview of your academic progress.</p>
+        <p className="text-muted-foreground text-sm mt-1">Overview of your academic progress.</p>
       </div>
 
       {isLoading ? (
-        <div className="flex h-40 items-center justify-center">Loading dashboard analytics...</div>
+        <div className="flex h-40 items-center justify-center text-muted-foreground">
+          Loading dashboard...
+        </div>
       ) : (
         <>
+          {/* ── Top stat cards ── */}
           <div className="grid gap-4 md:grid-cols-3">
+            <StatCard
+              label="Lectures processed"
+              value={processedLectures}
+              icon={BookOpen}
+              linkTo="/lectures"
+              sublabel="Click to view all lectures"
+            />
+            <StatCard
+              label="Pending revisions"
+              value={pendingRevisions}
+              icon={Clock}
+              variant={pendingRevisions > 10 ? 'warning' : 'default'}
+              linkTo="/revisions"
+              sublabel={pendingRevisions > 0 ? 'Click to start revising' : 'All caught up!'}
+            />
+            <StatCard
+              label="Upcoming deadlines"
+              value={upcomingDeadlines}
+              icon={AlertCircle}
+              variant={upcomingDeadlines > 0 ? 'danger' : 'default'}
+              linkTo="/deadlines"
+              sublabel={upcomingDeadlines > 0 ? 'Action required' : 'No deadlines soon'}
+            />
+          </div>
+
+          {/* ── Progress + metrics ── */}
+          <div className="grid gap-4 md:grid-cols-2">
+
+            {/* Study progress card */}
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Lectures</CardTitle>
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent><div className="text-2xl font-bold">{processedLectures} processed</div></CardContent>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  Study Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Big progress ring alternative — simple % display */}
+                <div className="flex items-end gap-2">
+                  <span className="text-4xl font-bold">{progressPct}%</span>
+                  <span className="text-sm text-muted-foreground pb-1">of study plan completed</span>
+                </div>
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-700"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                    {completedSessions} sessions done
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CalendarCheck className="h-3 w-3" />
+                    {totalSessions} total planned
+                  </span>
+                </div>
+              </CardContent>
             </Card>
+
+            {/* Weekly metrics card */}
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Pending Revisions</CardTitle>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent><div className="text-2xl font-bold">{pendingRevisions}</div></CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium uppercase tracking-wider text-destructive">Upcoming Deadlines</CardTitle>
-                    <AlertCircle className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent><div className="text-2xl font-bold text-destructive">{overdueDeadlines}</div></CardContent>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <CalendarCheck className="h-4 w-4 text-primary" />
+                  This Week
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <MetricBar
+                  label="Study time"
+                  value={studyMinutesWeek}
+                  max={metricsMax}
+                  unit="min"
+                  colorClass="bg-primary"
+                />
+                <MetricBar
+                  label="Sessions completed"
+                  value={completedSessions}
+                  max={metricsMax}
+                  unit="sessions"
+                  colorClass="bg-emerald-500"
+                />
+                <MetricBar
+                  label="Total sessions planned"
+                  value={totalSessions}
+                  max={metricsMax}
+                  unit="sessions"
+                  colorClass="bg-muted-foreground/40"
+                />
+              </CardContent>
             </Card>
           </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-bold">Metrics Framework</CardTitle>
-              {totalChartPages > 1 && (
-                <div className="flex items-center gap-2 font-mono text-xs">
-                  <span className="text-muted-foreground">Range {chartPage + 1} of {totalChartPages}</span>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setChartPage((o) => Math.max(0, o - 1))} disabled={chartPage === 0}><ChevronLeft className="h-4 w-4" /></Button>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setChartPage((o) => Math.min(totalChartPages - 1, o + 1))} disabled={chartPage >= totalChartPages - 1}><ChevronRight className="h-4 w-4" /></Button>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 font-mono text-xs">
-                {paginatedChartItems.map((item: any, idx: number) => {
-                  const countValue = item.value || 0
-                  const maxVal = Math.max(...rawChartItems.map((i: any) => i.value), 1)
-                  return (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex justify-between text-muted-foreground px-1">
-                        <span>{item.name.toLowerCase()}</span>
-                        <span>{countValue} units</span>
-                      </div>
-                      <div className="h-8 w-full bg-muted/40 rounded border flex items-center relative overflow-hidden">
-                        <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${Math.min(100, Math.max(8, (countValue / maxVal) * 100))}%` }} />
-                      </div>
+          {/* ── Today's plan preview (if available) ── */}
+          {dash?.todayStudyPlan && dash.todayStudyPlan.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Today's Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {dash.todayStudyPlan.map((plan: any) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 text-sm"
+                    >
+                      <span className="font-medium">{subjectsMap[plan.subjectId] || `Subject ${plan.subjectId}`}</span>
+                      <span className="text-muted-foreground text-xs">{plan.durationMinutes}m</span>
                     </div>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

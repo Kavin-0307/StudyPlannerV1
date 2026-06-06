@@ -14,10 +14,11 @@ public class DashboardResponseDTO {
     private Long studyHoursThisWeek;
     private Long totalStudySessions;
     private Long completedStudySessions;
-
+    private Long pendingRevisionsCount ;
     public DashboardResponseDTO() {}
 
     public DashboardResponseDTO(
+    		Long pendingRevisionsCount,
             List<StudyPlanResponseDTO> todayStudyPlan,
             List<DeadlineResponseDTO> upcomingDeadlines,
             List<LectureResponseDTO> pendingLectures,
@@ -27,7 +28,8 @@ public class DashboardResponseDTO {
             Long studyHoursThisWeek,
             Long totalStudySessions,
             Long completedStudySessions) {
-
+    	
+    	this.pendingRevisionsCount=pendingRevisionsCount;
         this.todayStudyPlan = todayStudyPlan;
         this.upcomingDeadlines = upcomingDeadlines;
         this.pendingLectures = pendingLectures;
@@ -38,7 +40,12 @@ public class DashboardResponseDTO {
         this.totalStudySessions = totalStudySessions;
         this.completedStudySessions = completedStudySessions;
     }
-
+    public void setPendingRevisionsCount(Long pendingRevisionsCount) {
+    	this.pendingRevisionsCount=pendingRevisionsCount;
+    }
+    public Long getPendingRevisionsCount() {
+     return pendingRevisionsCount;
+    }
     public List<StudyPlanResponseDTO> getTodayStudyPlan() {
         return todayStudyPlan;
     }

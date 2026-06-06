@@ -22,7 +22,8 @@ public class Lecture {
 	@Column(name="file_path",nullable=false)
 	private String filePath;
 	
-	
+	@Column(name="lecture_title",nullable=true)
+	private String lectureTitle;
 	@Lob
 	@Column(name="text_content", columnDefinition = "LONGTEXT")
 	private String lectureText;
@@ -90,6 +91,11 @@ public class Lecture {
 	public LocalDate getUploadDate() {
 		return uploadDate;
 	}
+	public String getLectureTitle() { return lectureTitle; }
+
+	// setter
+	public void setLectureTitle(String lectureTitle) { this.lectureTitle = lectureTitle; }
+
 	
 	
 }

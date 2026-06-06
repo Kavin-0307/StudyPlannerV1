@@ -77,6 +77,8 @@ public class LectureService {
 		}
 		lecture.setProcessed(false);
 		lecture.setFilePath(path.toString());
+		lecture.setLectureTitle(dto.getLectureTitle());
+
 		lecture.setUploadDate(LocalDate.now());
 		Lecture savedLecture=lectureRepository.save(lecture);
 		logger.info("Lecture uploaded for subject {}", user.getUserEmail());
@@ -315,6 +317,10 @@ public class LectureService {
 	}
 
 	private LectureResponseDTO convertToResponseDTO(Lecture lecture) {
-		return new LectureResponseDTO(lecture.getId(),lecture.getSubject().getId(),lecture.getFilePath(),lecture.getProcessed(),lecture.getUploadDate(),lecture.getLectureText(),lecture.isIndexed(),lecture.getProcessingStatus());
-	}
+		return new LectureResponseDTO(
+			    lecture.getId(), lecture.getSubject().getId(), lecture.getFilePath(),
+			    lecture.getProcessed(), lecture.getUploadDate(), lecture.getLectureText(),
+			    lecture.isIndexed(), lecture.getProcessingStatus(),
+			    lecture.getLectureTitle()  // ← add this
+			);	}
 }

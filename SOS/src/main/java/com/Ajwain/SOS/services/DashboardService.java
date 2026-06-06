@@ -12,19 +12,19 @@ import com.Ajwain.SOS.dto.StudyPlanResponseDTO;
 
 @Service
 public class DashboardService {
-
+	private final RevisionService revisionService;
     private final StudyPlanService studyPlanService;
     private final DeadlineService deadlineService;
     private final LectureService lectureService;
     private final AnalyticsService analyticsService;
 
-    public DashboardService(StudyPlanService studyPlanService,DeadlineService deadlineService,LectureService lectureService,AnalyticsService analyticsService) {
+    public DashboardService(RevisionService revisionService,StudyPlanService studyPlanService,DeadlineService deadlineService,LectureService lectureService,AnalyticsService analyticsService) {
         this.studyPlanService = studyPlanService;
         this.deadlineService = deadlineService;
         this.lectureService = lectureService;
+        this.revisionService=revisionService;
         this.analyticsService = analyticsService;
     }
-    @Cacheable(value = "dashboard", key = "#userId")
     public DashboardResponseDTO getDashboard(Long userId) {
         List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan();
         
@@ -36,6 +36,7 @@ public class DashboardService {
         Long pendingLecturesCount=analyticsService.getPendingLectures();
 
         Long progress=analyticsService.getStudyProgressPercentage();
+        Long pendingRevisionsCount = revisionService.countPendingRevisionsByUser();
 
         Long studyHoursWeek=analyticsService.getStudyHoursThisWeek();
 
@@ -44,6 +45,8 @@ public class DashboardService {
         Long completedSessions=analyticsService.getCompletedStudySessions(userId);
 
         return new DashboardResponseDTO(
+        		pendingRevisionsCount,
+
                 todayPlan,
                 upcomingDeadlines,
                 pendingLectures,
