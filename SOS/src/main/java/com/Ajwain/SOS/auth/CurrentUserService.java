@@ -48,6 +48,5 @@ public class CurrentUserService {
     }
 
 	public void clear() {
-	    currentUserCache.remove();
 	}
 }

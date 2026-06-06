@@ -48,7 +48,7 @@ public class AnalyticsService {
 	        User user=currentUserService.getCurrentUser();
 		    return studyPlanRepository.countByUser(user);
 		}
-	  public Long getCompletedStudySessions(Long userId) {
+	  public Long getCompletedStudySessions() {
 
 	        User user=currentUserService.getCurrentUser();
 		    return studyPlanRepository.countByUserAndStatus(user, StudyStatus.COMPLETED);

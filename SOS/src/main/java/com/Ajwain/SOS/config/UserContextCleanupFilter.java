@@ -1,7 +1,6 @@
 package com.Ajwain.SOS.config;
 
 import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 import org.springframework.security.core.context.SecurityContextHolder;

@@ -33,6 +33,7 @@ build/
 .vscode/
 
 ### Local secrets — never commit ###
+.env
 **/application-local.properties
 .metadata/
 sos_files/

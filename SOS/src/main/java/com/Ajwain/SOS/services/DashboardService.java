@@ -25,7 +25,7 @@ public class DashboardService {
         this.revisionService=revisionService;
         this.analyticsService = analyticsService;
     }
-    public DashboardResponseDTO getDashboard(Long userId) {
+    public DashboardResponseDTO getDashboard() {
         List<StudyPlanResponseDTO> todayPlan =studyPlanService.getTodayPlan();
         
         List<DeadlineResponseDTO> upcomingDeadlines =deadlineService.getUpcomingDeadlines();
@@ -42,7 +42,7 @@ public class DashboardService {
 
         Long totalSessions=analyticsService.getTotalStudySessions();
 
-        Long completedSessions=analyticsService.getCompletedStudySessions(userId);
+        Long completedSessions=analyticsService.getCompletedStudySessions();
 
         return new DashboardResponseDTO(
         		pendingRevisionsCount,
