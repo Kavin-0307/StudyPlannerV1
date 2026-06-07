@@ -138,7 +138,6 @@ public class DeadlineService {
 	        .map(this::convertToResponseDTO)
 	        .toList();
 	}
-	@Cacheable(value="deadlines",key="#root.target.currentUserService.getCurrentUser().id+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
 
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesBySubject(long subjectId,Pageable pageable){
 		if(pageable.getPageSize()>PaginationConfig.getMaxSize())
@@ -149,7 +148,6 @@ public class DeadlineService {
 		List<DeadlineResponseDTO> dtos=deadline.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(deadline,dtos);
 	}
-	@Cacheable(value="deadlines",key="#root.target.currentUserService.getCurrentUser().id+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
 	public PaginationResponseDTO<DeadlineResponseDTO> getDeadlinesByUser(Pageable pageable){
 		pageable=validatePageable(pageable);
 

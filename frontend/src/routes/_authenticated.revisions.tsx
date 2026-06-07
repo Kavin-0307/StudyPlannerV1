@@ -11,7 +11,7 @@ export const Route = createFileRoute('/_authenticated/revisions')({
   component: RevisionsPage,
 })
 
-// ─── Toast ─────────────────────────────────────────────────────────────────
+// ─── Toast ──────────────────────────────────────────────────────────────────
 type Toast = { id: number; message: string; onUndo: () => void }
 
 function useToast() {
@@ -36,7 +36,7 @@ function useToast() {
   return { toasts, show, dismiss }
 }
 
-// ─── Urgency helpers ───────────────────────────────────────────────────────
+// ─── Urgency helpers ─────────────────────────────────────────────────────────
 function parseRevisionDate(rawDate: string): Date {
   const [year, month, day] = rawDate.split('-').map(Number)
   return new Date(year, month - 1, day)
@@ -76,7 +76,13 @@ const GROUP_META: Record<
   },
 }
 
-// ─── Single revision card ──────────────────────────────────────────────────
+// ─── Resolve the numeric ID from a revision object ───────────────────────────
+// Backend field is revisionId on the DTO but older builds may use id
+function getRevId(rev: any): number {
+  return rev.revisionId ?? rev.id
+}
+
+// ─── Single revision card ────────────────────────────────────────────────────
 function RevisionCard({
   rev,
   group,
@@ -89,7 +95,7 @@ function RevisionCard({
   isCommitting: boolean
 }) {
   const meta = GROUP_META[group]
-  const id = rev.revisionId
+  const id = getRevId(rev)
   const rawDate = rev.revisionDate
   const lectureLabel = rev.lectureTitle || `Lecture #${rev.lectureId}`
   const sessionIndex = rev.revisionNumber || 1
@@ -133,7 +139,7 @@ function RevisionCard({
         <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${meta.badgeClass}`}>
           {meta.badgeLabel}
         </span>
-        {id && (
+        {id != null && (
           <Button
             size="sm"
             variant="outline"
@@ -150,31 +156,18 @@ function RevisionCard({
   )
 }
 
-// ─── Group: Overdue — always fully visible, no pagination ─────────────────
-function OverdueGroup({
-  revisions,
-  onMarkDone,
-  committingIds,
-}: {
-  revisions: any[]
-  onMarkDone: (rev: any) => void
-  committingIds: Set<number>
+// ─── Group: Overdue ───────────────────────────────────────────────────────────
+function OverdueGroup({ revisions, onMarkDone, committingIds }: {
+  revisions: any[]; onMarkDone: (rev: any) => void; committingIds: Set<number>
 }) {
   const [open, setOpen] = React.useState(true)
-
   return (
     <div className="space-y-3">
       <GroupHeader group="overdue" count={revisions.length} open={open} onToggle={() => setOpen((v) => !v)} />
       {open && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {revisions.map((rev) => (
-            <RevisionCard
-              key={rev.revisionId}
-              rev={rev}
-              group="overdue"
-              onMarkDone={onMarkDone}
-              isCommitting={committingIds.has(rev.revisionId)}
-            />
+            <RevisionCard key={getRevId(rev)} rev={rev} group="overdue" onMarkDone={onMarkDone} isCommitting={committingIds.has(getRevId(rev))} />
           ))}
         </div>
       )}
@@ -182,24 +175,15 @@ function OverdueGroup({
   )
 }
 
-// ─── Group: Due Today — show 6, "Show all N" expand toggle ────────────────
+// ─── Group: Due Today ─────────────────────────────────────────────────────────
 const TODAY_INITIAL = 6
 
-function TodayGroup({
-  revisions,
-  onMarkDone,
-  committingIds,
-}: {
-  revisions: any[]
-  onMarkDone: (rev: any) => void
-  committingIds: Set<number>
+function TodayGroup({ revisions, onMarkDone, committingIds }: {
+  revisions: any[]; onMarkDone: (rev: any) => void; committingIds: Set<number>
 }) {
   const [open, setOpen] = React.useState(true)
   const [expanded, setExpanded] = React.useState(false)
-
   const visible = expanded ? revisions : revisions.slice(0, TODAY_INITIAL)
-  const hasMore = revisions.length > TODAY_INITIAL
-
   return (
     <div className="space-y-3">
       <GroupHeader group="today" count={revisions.length} open={open} onToggle={() => setOpen((v) => !v)} />
@@ -207,23 +191,12 @@ function TodayGroup({
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {visible.map((rev) => (
-              <RevisionCard
-                key={rev.revisionId}
-                rev={rev}
-                group="today"
-                onMarkDone={onMarkDone}
-                isCommitting={committingIds.has(rev.revisionId)}
-              />
+              <RevisionCard key={getRevId(rev)} rev={rev} group="today" onMarkDone={onMarkDone} isCommitting={committingIds.has(getRevId(rev))} />
             ))}
           </div>
-          {hasMore && (
-            <button
-              onClick={() => setExpanded((v) => !v)}
-              className="text-xs font-medium text-primary hover:underline mt-1"
-            >
-              {expanded
-                ? 'Show less'
-                : `Show all ${revisions.length} due today`}
+          {revisions.length > TODAY_INITIAL && (
+            <button onClick={() => setExpanded((v) => !v)} className="text-xs font-medium text-primary hover:underline mt-1">
+              {expanded ? 'Show less' : `Show all ${revisions.length} due today`}
             </button>
           )}
         </>
@@ -232,25 +205,16 @@ function TodayGroup({
   )
 }
 
-// ─── Group: Upcoming — load more in batches of 6 ──────────────────────────
+// ─── Group: Upcoming ──────────────────────────────────────────────────────────
 const UPCOMING_PAGE_SIZE = 6
 
-function UpcomingGroup({
-  revisions,
-  onMarkDone,
-  committingIds,
-}: {
-  revisions: any[]
-  onMarkDone: (rev: any) => void
-  committingIds: Set<number>
+function UpcomingGroup({ revisions, onMarkDone, committingIds }: {
+  revisions: any[]; onMarkDone: (rev: any) => void; committingIds: Set<number>
 }) {
   const [open, setOpen] = React.useState(true)
   const [visibleCount, setVisibleCount] = React.useState(UPCOMING_PAGE_SIZE)
-
   const visible = revisions.slice(0, visibleCount)
-  const hasMore = visibleCount < revisions.length
   const remaining = revisions.length - visibleCount
-
   return (
     <div className="space-y-3">
       <GroupHeader group="upcoming" count={revisions.length} open={open} onToggle={() => setOpen((v) => !v)} />
@@ -258,16 +222,10 @@ function UpcomingGroup({
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {visible.map((rev) => (
-              <RevisionCard
-                key={rev.revisionId}
-                rev={rev}
-                group="upcoming"
-                onMarkDone={onMarkDone}
-                isCommitting={committingIds.has(rev.revisionId)}
-              />
+              <RevisionCard key={getRevId(rev)} rev={rev} group="upcoming" onMarkDone={onMarkDone} isCommitting={committingIds.has(getRevId(rev))} />
             ))}
           </div>
-          {hasMore && (
+          {remaining > 0 && (
             <button
               onClick={() => setVisibleCount((n) => n + UPCOMING_PAGE_SIZE)}
               className="w-full py-2.5 text-xs font-medium text-muted-foreground border border-dashed rounded-lg hover:border-primary/50 hover:text-primary transition-colors mt-1"
@@ -282,17 +240,9 @@ function UpcomingGroup({
   )
 }
 
-// ─── Shared group header ───────────────────────────────────────────────────
-function GroupHeader({
-  group,
-  count,
-  open,
-  onToggle,
-}: {
-  group: UrgencyGroup
-  count: number
-  open: boolean
-  onToggle: () => void
+// ─── Shared group header ──────────────────────────────────────────────────────
+function GroupHeader({ group, count, open, onToggle }: {
+  group: UrgencyGroup; count: number; open: boolean; onToggle: () => void
 }) {
   const meta = GROUP_META[group]
   return (
@@ -308,7 +258,7 @@ function GroupHeader({
   )
 }
 
-// ─── Main page ─────────────────────────────────────────────────────────────
+// ─── Main page ────────────────────────────────────────────────────────────────
 function RevisionsPage() {
   const queryClient = useQueryClient()
   const { toasts, show: showToast, dismiss } = useToast()
@@ -318,12 +268,18 @@ function RevisionsPage() {
 
   const { data: revisionsEnvelope, isLoading } = useQuery({
     queryKey: ['revisions', 'all'],
-    queryFn: () => revisionService.getAll({ size: 200, revisionStatus: 'PENDING' }),
+    queryFn: () => revisionService.getAll({ size: 200, status: 'PENDING' }),
+    // Refresh every 30s so the count stays in sync with the dashboard
+    refetchInterval: 30_000,
   })
 
   const completeMutation = useMutation({
     mutationFn: (id: number) => revisionService.markComplete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['revisions'] }),
+    onSuccess: () => {
+      // Invalidate both revision list and dashboard so the pending count syncs immediately
+      queryClient.invalidateQueries({ queryKey: ['revisions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    },
     onError: (_err, id) => {
       setOptimisticDoneIds((prev) => { const n = new Set(prev); n.delete(id); return n })
       setCommittingIds((prev) => { const n = new Set(prev); n.delete(id); return n })
@@ -332,16 +288,17 @@ function RevisionsPage() {
 
   const handleMarkDone = React.useCallback(
     (rev: any) => {
-      const id: number = rev.revisionId
+      const id: number = getRevId(rev)
       setOptimisticDoneIds((prev) => new Set([...prev, id]))
 
       showToast(`Revision #${rev.revisionNumber} marked done`, () => {
         setOptimisticDoneIds((prev) => { const n = new Set(prev); n.delete(id); return n })
       })
 
+      // Commit after 5s undo window
       setTimeout(() => {
         setOptimisticDoneIds((prev) => {
-          if (!prev.has(id)) return prev
+          if (!prev.has(id)) return prev   // user hit undo
           setCommittingIds((c) => new Set([...c, id]))
           completeMutation.mutate(id)
           return prev
@@ -351,11 +308,13 @@ function RevisionsPage() {
     [showToast, completeMutation],
   )
 
-  const allRevisions: any[] = revisionsEnvelope?.content || revisionsEnvelope?.data || []
-
-  const visibleRevisions = allRevisions.filter(
-    (r) => r.status !== 'COMPLETED' && !optimisticDoneIds.has(r.revisionId),
-  )
+  // Support both paginated envelope { content, totalElements } and plain array
+  const allRevisions: any[] = revisionsEnvelope?.content ?? revisionsEnvelope?.data ?? (Array.isArray(revisionsEnvelope) ? revisionsEnvelope : [])
+console.log("TOTAL FROM API", allRevisions.length)
+console.log(allRevisions)
+const visibleRevisions = allRevisions.filter(
+  (r) => !optimisticDoneIds.has(getRevId(r)),
+)
 
   const grouped = visibleRevisions.reduce(
     (acc: Record<UrgencyGroup, any[]>, rev) => {
@@ -365,11 +324,11 @@ function RevisionsPage() {
     },
     { overdue: [], today: [], upcoming: [] },
   )
-
-  const totalVisible = visibleRevisions.length
-  const totalElements = revisionsEnvelope?.totalElements ?? allRevisions.length
-
-  return (
+  console.log("OVERDUE", grouped.overdue.length)
+console.log("TODAY", grouped.today.length)
+console.log("UPCOMING", grouped.upcoming.length)
+const pendingCount = revisionsEnvelope?.totalElements ?? visibleRevisions.length  
+return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -379,42 +338,33 @@ function RevisionsPage() {
             Review lectures systematically based on the forgetting curve memory model.
           </p>
         </div>
-        {totalElements > 0 && (
+        {pendingCount > 0 && (
           <div className="text-right">
-            <p className="text-2xl font-bold text-foreground">{totalVisible}</p>
-            <p className="text-xs text-muted-foreground">pending of {totalElements}</p>
+            <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+<p className="text-xs text-muted-foreground">
+  pending revisions
+</p>
           </div>
         )}
       </div>
 
       {isLoading ? (
         <div className="flex h-40 items-center justify-center">Loading revisions...</div>
-      ) : totalVisible === 0 ? (
+      ) : pendingCount
+ === 0 ? (
         <div className="flex h-40 items-center justify-center text-muted-foreground border border-dashed rounded-lg">
           All caught up — no pending revisions.
         </div>
       ) : (
         <div className="space-y-10">
           {grouped.overdue.length > 0 && (
-            <OverdueGroup
-              revisions={grouped.overdue}
-              onMarkDone={handleMarkDone}
-              committingIds={committingIds}
-            />
+            <OverdueGroup revisions={grouped.overdue} onMarkDone={handleMarkDone} committingIds={committingIds} />
           )}
           {grouped.today.length > 0 && (
-            <TodayGroup
-              revisions={grouped.today}
-              onMarkDone={handleMarkDone}
-              committingIds={committingIds}
-            />
+            <TodayGroup revisions={grouped.today} onMarkDone={handleMarkDone} committingIds={committingIds} />
           )}
           {grouped.upcoming.length > 0 && (
-            <UpcomingGroup
-              revisions={grouped.upcoming}
-              onMarkDone={handleMarkDone}
-              committingIds={committingIds}
-            />
+            <UpcomingGroup revisions={grouped.upcoming} onMarkDone={handleMarkDone} committingIds={committingIds} />
           )}
         </div>
       )}

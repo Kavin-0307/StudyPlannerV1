@@ -77,7 +77,6 @@ public class SubjectService {
         logger.info("Subject {} updated", subjectId);
         return convertToResponseDTO(savedSubject);
     }
-    @Cacheable(value="subjects",key="#root.target.currentUserService.getCurrentUserId()+'_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort")
     public PaginationResponseDTO<SubjectResponseDTO> getSubjects(Pageable pageable) {
         long userId = currentUserService.getCurrentUserId();
         pageable = validatePageable(pageable);

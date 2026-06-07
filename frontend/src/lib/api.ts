@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Default to localhost:8080 if not provided in env
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const api = axios.create({
@@ -10,6 +9,7 @@ const api = axios.create({
   },
 });
 
+// Attach JWT to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token && config.headers) {
@@ -17,5 +17,18 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// On 401, clear storage and redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

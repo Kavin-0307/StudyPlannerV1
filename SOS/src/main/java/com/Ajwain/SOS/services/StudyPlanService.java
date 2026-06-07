@@ -165,10 +165,7 @@ public class StudyPlanService {
 
 	    return convertToResponseDTO(plan);
 	}
-	@Cacheable(
-			  value = "studyplan",
-			  key ="'today:'+#root.target.currentUserService.getCurrentUser().id "
-			)
+
 	public List<StudyPlanResponseDTO> getTodayPlan(){
 		User user=currentUserService.getCurrentUser();
 		return studyPlanRepository.findTodayPlanWithRelations(user.getId(), LocalDate.now()).stream().map(this::convertToResponseDTO).toList();
@@ -216,10 +213,7 @@ public class StudyPlanService {
 				studyPlan.getStudyStatus());
 	}
 
-	@Cacheable(
-			  value = "studyplan",
-			  key = "'page:'+#root.target.currentUserService.getCurrentUser().id +':' + #pageable.pageNumber"
-			)
+	
 	public PaginationResponseDTO<StudyPlanResponseDTO> getStudyPlans(Pageable pageable) {
 
 	    User user = currentUserService.getCurrentUser();
@@ -230,10 +224,7 @@ public class StudyPlanService {
 
 	    return PaginationResponseDTO.fromPage(page, dtos);
 	}
-	@Cacheable(
-			  value = "studyplan",
-			  key = "'today-page:'+#root.target.currentUserService.getCurrentUser().id + ':' + #pageable.pageNumber"
-			)
+	
 
 	public PaginationResponseDTO<StudyPlanResponseDTO> getTodayPlan(Pageable pageable) {
 	    User user = currentUserService.getCurrentUser(); 

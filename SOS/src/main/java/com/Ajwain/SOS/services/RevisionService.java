@@ -24,6 +24,9 @@ import com.Ajwain.SOS.exception.UnauthorizedException;
 import com.Ajwain.SOS.repositories.RevisionRepository;
 import com.Ajwain.SOS.specifications.RevisionSpecification;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class RevisionService {
 	private final RevisionRepository revisionRepository;
@@ -32,6 +35,7 @@ public class RevisionService {
 		this.revisionRepository=revisionRepository;
 		this.currentUserService = currentUserService;
 	}
+	@CacheEvict(value="dashboard",allEntries=true)
 	public void createRevisionSchedule(Lecture lecture) {
 		LocalDate processedDate=LocalDate.now();
 		List<Revision> revisionSchedule=new ArrayList<>() ;
@@ -50,7 +54,9 @@ public class RevisionService {
 		revisionRepository.saveAll(revisionSchedule);
 		
 	}
-	
+	@Transactional
+	@CacheEvict(value = "dashboard", allEntries = true)
+
 	public RevisionResponseDTO markRevisionCompleted(Long revisionId) {
 		 User user = currentUserService.getCurrentUser(); 
 		Revision revision=revisionRepository.findById(revisionId).orElseThrow(()->new ResourceNotFoundException("Revision not found"));
@@ -63,17 +69,15 @@ public class RevisionService {
 	public PaginationResponseDTO<RevisionResponseDTO> getRevisionsByUser(Pageable pageable){
 		User user = currentUserService.getCurrentUser(); 
 		pageable = validatePageable(pageable);
-		Page<Revision> revision=revisionRepository.findByLectureSubjectUserId(user, pageable);
+		Page<Revision> revision=revisionRepository.findAllByUserWithLectureAndSubject(user, pageable);
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
 	}
 	public PaginationResponseDTO<RevisionResponseDTO> getDueRevisions(Pageable pageable){
 		User user = currentUserService.getCurrentUser();
 		pageable = validatePageable(pageable);
-		Page<Revision> revision =
-			    revisionRepository.findByLectureSubjectUserAndRevisionDateLessThanEqual(
-			        user, LocalDate.now(), pageable
-			    );		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
+		Page<Revision> revision =revisionRepository.findDueRevisionsWithRelations(user,LocalDate.now(),RevisionStatus.PENDING,pageable);
+		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
 	}
 	public PaginationResponseDTO<RevisionResponseDTO> getRevisionsForLecture(long lectureId,Pageable pageable){
@@ -91,7 +95,7 @@ public class RevisionService {
 		pageable = validatePageable(pageable);
         User user = currentUserService.getCurrentUser(); 
 
-		Page<Revision> revision=revisionRepository.findByLectureSubjectUserAndStatus(user,RevisionStatus.COMPLETED, pageable);
+		Page<Revision> revision=revisionRepository.findAllByUserAndStatusWithRelations(user,RevisionStatus.COMPLETED, pageable);
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
 	}
@@ -101,7 +105,7 @@ public class RevisionService {
         User user = currentUserService.getCurrentUser(); 
 
 		pageable = validatePageable(pageable);
-		Page<Revision> revision=revisionRepository.findByLectureSubjectUserAndStatus(user,RevisionStatus.PENDING, pageable);
+		Page<Revision> revision=revisionRepository.findAllByUserAndStatusWithRelations(user,RevisionStatus.PENDING, pageable);
 		List<RevisionResponseDTO> dtos=revision.getContent().stream().map(this::convertToResponseDTO).toList();
 		return PaginationResponseDTO.fromPage(revision, dtos);
 	}

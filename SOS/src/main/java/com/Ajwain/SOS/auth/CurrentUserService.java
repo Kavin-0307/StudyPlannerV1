@@ -17,13 +17,9 @@ public class CurrentUserService {
     public CurrentUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    private final ThreadLocal<User> currentUserCache = new ThreadLocal<>();
     public User getCurrentUser() {
 
-        if(currentUserCache.get()!=null) {
-            return currentUserCache.get();
-        }
-
+        
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null||!authentication.isAuthenticated()) {
             throw new ResourceNotFoundException("No authenticated user found");
@@ -35,7 +31,6 @@ public class CurrentUserService {
         String email = userDetails.getUsername();
         User user = userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        currentUserCache.set(user);
         return user;
     }
 

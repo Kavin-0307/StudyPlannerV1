@@ -1,11 +1,18 @@
 package com.Ajwain.SOS.dto;
 
 import java.util.List;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.ArrayList;
 
 public class DashboardResponseDTO {
+	@JsonDeserialize(contentAs = StudyPlanResponseDTO.class)
 
     private List<StudyPlanResponseDTO> todayStudyPlan;
+	@JsonDeserialize(contentAs = DeadlineResponseDTO.class)
+
     private List<DeadlineResponseDTO> upcomingDeadlines;
+	@JsonDeserialize(contentAs = LectureResponseDTO.class)
+
     private List<LectureResponseDTO> pendingLectures;
 
     private Long completedLectures;
